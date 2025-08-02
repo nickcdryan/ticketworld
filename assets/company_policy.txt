@@ -1,129 +1,89 @@
-```plain text
-**TechNest Customer Service Policy**
 
-**Document Version:** 1.0
-**Effective Date:** October 26, 2023
+Return Policy
+=============
 
-This document outlines TechNest's policies regarding customer service, returns, shipping, warranties, price matching, and communication. Our goal is to provide exceptional service and build long-term relationships with our valued customers.
+[POL-RETURN-001] Return Window
+Rule: ALL items: 30-day return window from delivery date. No returns accepted after 30 days for any reason.
+Conditions: within_return_window, receipt_required
 
-**1. Return Policy**
+[POL-RETURN-002] Restocking Fee
+Rule: Opened items: 15% restocking fee applies unless item is defective
+Conditions: within_return_window
 
-[POL-RETURN-001] **Standard Return Period:** TechNest offers a 30-day return policy on most products, starting from the date of purchase. To be eligible for a full refund, returns must be accompanied by the original receipt or proof of purchase (e.g., order confirmation email).
+[POL-RETURN-003] Unopened Items
+Rule: Unopened items: Full refund, no restocking fee
+Conditions: within_return_window
 
-[POL-RETURN-002] **Extended Holiday Return Period:** For purchases made between November 15th and January 31st, we extend the return period to 60 days from the date of purchase. This policy applies to all products that fall under the standard return policy.
+[POL-RETURN-004] Defective Items
+Rule: Defective items: Full refund, no restocking fee regardless of opened status
+Conditions: within_return_window
 
-[POL-RETURN-003] **Opened Items and Restocking Fee:** Opened items, unless defective, may be subject to a 15% restocking fee. The restocking fee covers the cost of inspecting, repackaging, and potentially discounting the returned item. For example, if you return an opened set of headphones that are fully functional, a 15% restocking fee will be applied.
+Shipping Policy
+===============
 
-[POL-RETURN-004] **Defective Items:** Defective items can be returned for a full refund or exchange within the applicable return period (30 or 60 days) without incurring a restocking fee. We may require you to provide evidence of the defect, such as photos or videos.
+[POL-SHIP-001] Shipping Costs
+Rule: Standard shipping (5-7 days): Free on orders over $50, otherwise $9.99
 
-[POL-RETURN-005] **Product Category Exceptions:** The following product categories have specific return requirements:
+[POL-SHIP-002] Package Not Received
+Rule: Package not received: Replacement sent after carrier investigation (3 business days)
 
-*   **Software:** Opened software is non-refundable, unless the software is defective.
-*   **Consumables (e.g., printer ink, batteries):** Consumables are only eligible for return if unopened and in their original packaging.
-*   **Headphones/Earbuds (Due to hygiene):** Opened headphones/earbuds can only be returned if defective.
-*   **Final Sale Items:** Items marked as "Final Sale" are non-returnable and non-refundable.
-*   **Gaming Consoles (Opened):** Opened gaming consoles can be returned within the standard return window (30 days), but are subject to a restocking fee of 10%.
+[POL-SHIP-003] Investigation Required
+Rule: Investigation period: 3 business days required before replacement for lost packages
 
-[POL-RETURN-006] **Return Process:** To initiate a return, please follow these steps:
+[POL-SHIP-004] Wrong Item Shipped
+Rule: Wrong item shipped: Free return label provided, correct item sent immediately
 
-1.  Contact TechNest Customer Support via phone, email, or online chat.
-2.  Provide your order number and the reason for the return.
-3.  You will receive a Return Merchandise Authorization (RMA) number and instructions on how to package and ship the item back to us.
-4.  Returned items must be shipped within 14 days of receiving the RMA number.
-5.  Refunds will be processed within 7-10 business days of receiving the returned item.
+[POL-SHIP-005] Damage Claims High Value
+Rule: Damaged items over $500: Photo required before replacement approved
+Conditions: item_over_500
 
-[POL-RETURN-007] **In-Store Returns:** Items purchased online can be returned to any TechNest retail location, provided you have the original receipt or order confirmation.
+[POL-SHIP-006] Damage Claims Standard
+Rule: Damaged items under $500: Immediate replacement authorized
 
-**2. Shipping Policy**
+Warranty Policy
+===============
 
-[POL-SHIP-001] **Standard Shipping:** We offer standard shipping (5-7 business days) on all orders. Orders totaling $50 or more (before taxes and shipping) qualify for free standard shipping.
+[POL-WARRANTY-001] Warranty Period
+Rule: Manufacturer warranty: 1 year from purchase date. No warranty service after 1 year
+Conditions: warranty_period
 
-[POL-SHIP-002] **Express Shipping:** Express shipping (2-3 business days) is available for a flat fee of $12.99.
+[POL-WARRANTY-002] Manufacturing Defects
+Rule: Defects covered: Manufacturing defects only
+Conditions: warranty_period
 
-[POL-SHIP-003] **Shipping Restrictions:** We currently only ship to addresses within the contiguous United States. We do not ship to P.O. boxes or APO/FPO addresses.
+[POL-WARRANTY-003] Warranty Exclusions
+Rule: Not covered: Physical damage, water damage, normal wear
+Conditions: warranty_period
 
-[POL-SHIP-004] **Damage Claims:** If your order arrives damaged, you must file a claim with TechNest Customer Support within 48 hours of delivery. Please provide photos of the damaged packaging and the damaged item. Failure to report damage within this timeframe may invalidate your claim.
+Price Match Policy
+==================
 
-[POL-SHIP-005] **Wrong Item Shipped:** If you receive the wrong item, please contact TechNest Customer Support immediately. We will provide a prepaid shipping label for you to return the incorrect item, and we will ship the correct item to you free of charge.
+[POL-PRICE-001] Price Match Window
+Rule: Authorized retailers only: Price matched within 14 days of purchase. No price match after 14 days
+Conditions: within_price_match_window
 
-[POL-SHIP-006] **Order Tracking:** You will receive a tracking number via email once your order has shipped. You can use this tracking number to monitor the progress of your shipment on the carrier's website.
+[POL-PRICE-002] Price Match Exclusions
+Rule: Exclusions: Marketplace sellers, clearance items, bundles
 
-[POL-SHIP-007] **Shipping Delays:** TechNest is not responsible for shipping delays caused by factors beyond our control, such as weather conditions, carrier issues, or inaccurate address information provided by the customer. However, we will do our best to assist you in resolving any shipping-related issues.
+Order Policy
+============
 
-**3. Warranty Policy**
+[POL-ORDER-001] Order Modification Window
+Rule: Changes allowed: Within 2 hours of order placement. After 2 hours: Order cannot be modified
+Conditions: order_not_shipped
 
-[POL-WARRANTY-001] **Manufacturer Warranty:** TechNest is an authorized retailer for all the products we sell. As such, all products are covered by the original manufacturer's warranty. The warranty period and coverage vary depending on the manufacturer and the specific product. Refer to the manufacturer's warranty documentation included with your product for details.
+Special Conditions
+==================
 
-[POL-WARRANTY-002] **TechNest Extended Warranty:** TechNest offers extended warranty options for many of our products. These warranties provide additional coverage beyond the manufacturer's warranty, protecting you against defects, malfunctions, and accidental damage. Details of these warranties, including pricing and coverage options, are available on the product pages of eligible items or at point of sale.
+[POL-HOLIDAY-001] Holiday Extension
+Rule: Holiday purchases: Return window extended to 45 days for purchases made November 1 - December 31
 
-[POL-WARRANTY-003] **Warranty Claim Process:** To file a warranty claim, follow these steps:
+Customer Service Standards
+==========================
 
-1.  Review the manufacturer's warranty or your TechNest Extended Warranty documentation to ensure the issue is covered.
-2.  Contact TechNest Customer Support.
-3.  Provide proof of purchase (receipt or order confirmation) and a detailed description of the issue.
-4.  We will guide you through the warranty claim process, which may involve contacting the manufacturer directly or sending the item to a designated repair center.
+[POL-COMM-001] Response Time
+Rule: Response time: Within 24 hours
 
-[POL-WARRANTY-004] **Exclusions:** Warranties do not cover damage caused by misuse, abuse, neglect, unauthorized repairs, or acts of God.
-
-**4. Price Match Policy**
-
-[POL-PRICE-001] **Price Match Guarantee:** TechNest offers a price match guarantee on identical items from authorized retailers. If you find a lower price on an identical item at an authorized retailer within 14 days of your purchase from TechNest, we will match the price.
-
-[POL-PRICE-002] **Authorized Retailers:** An authorized retailer is defined as a retailer that is authorized by the manufacturer to sell the product. Examples include Best Buy, Amazon (sold directly by Amazon, not a third-party seller), and major electronics retailers.
-
-[POL-PRICE-003] **Exclusions:** The following exclusions apply to our price match guarantee:
-
-*   Marketplace sellers (e.g., third-party sellers on Amazon, eBay).
-*   Clearance items, closeout deals, and limited-quantity offers.
-*   Pricing errors or typographical errors.
-*   Refurbished or used items.
-*   Competitor's coupons or promotional codes.
-*   Prices from retailers located outside of the United States.
-*   "Bundle" offers where products are sold together as a set.
-
-[POL-PRICE-004] **Price Match Process:** To request a price match, contact TechNest Customer Support within 14 days of your purchase and provide proof of the lower price (e.g., a link to the competitor's website or a screenshot of the advertisement). We will verify the price and eligibility, and if approved, we will issue a refund for the difference.
-
-**5. Customer Communication Guidelines**
-
-[POL-COMM-001] **Professional and Empathetic Tone:** TechNest employees are expected to communicate with customers in a professional, courteous, and empathetic manner at all times. We understand that customers may be frustrated or upset, and we will strive to address their concerns with patience and understanding.
-
-[POL-COMM-002] **Resolution Timeframes:** We are committed to resolving customer inquiries and issues as quickly as possible. We will respond to emails and online chat requests within 24 hours. Phone calls will be answered as promptly as possible. Complex issues may require additional time for investigation and resolution. We will keep customers informed of the progress of their case.
-
-[POL-COMM-003] **Escalation Procedures:** If a customer issue cannot be resolved by the initial customer service representative, the issue will be escalated to a supervisor or manager. Customers can request escalation if they are not satisfied with the initial response.
-
-[POL-COMM-004] **Communication Channels:** TechNest provides multiple communication channels for customer support, including phone, email, and online chat. We will strive to provide consistent and accurate information across all channels.
-
-[POL-COMM-005] **Feedback:** We encourage customers to provide feedback on their experiences with TechNest. This feedback helps us improve our products, services, and customer service.
-
-**6. Loyalty Program Benefits (TechNest Rewards)**
-
-[POL-LOYALTY-001] **Program Overview:** The TechNest Rewards program offers exclusive benefits to our loyal customers. Membership is free and easy to join.
-
-[POL-LOYALTY-002] **Bronze Tier:** Earn 2% cashback on all purchases.
-
-[POL-LOYALTY-003] **Silver Tier:** Earn 3% cashback on all purchases, plus free standard shipping on all orders. Requires annual spending of $500 or more.
-
-[POL-LOYALTY-004] **Gold Tier:** Earn 5% cashback on all purchases, free express shipping on all orders, and extended returns (45 days on most items). Requires annual spending of $1000 or more.
-
-[POL-LOYALTY-005] **Cashback Redemption:** Cashback rewards can be redeemed on future purchases at TechNest.
-
-[POL-LOYALTY-006] **Tier Qualification:** Tier status is determined based on annual spending (rolling 12-month period).
-
-**The following sections are for internal use only and not customer-facing.**
-
-**7. Employee Code of Conduct** [POL-EMPLOYEE-001]
-
-TechNest employees are expected to adhere to the highest ethical standards and conduct themselves in a professional and respectful manner at all times. This includes treating customers and colleagues with courtesy and respect, maintaining confidentiality, and avoiding conflicts of interest. Detailed guidelines are available in the Employee Handbook.
-
-**8. Supplier Terms and Conditions** [POL-SUPPLIER-001]
-
-TechNest's Supplier Terms and Conditions govern the relationship between TechNest and its suppliers. These terms cover aspects such as product quality, pricing, delivery schedules, and payment terms. A copy of the Supplier Terms and Conditions is available upon request.
-
-**9. Environmental and Recycling Policy** [POL-ENV-001]
-
-TechNest is committed to environmental sustainability. We encourage customers to recycle electronic waste responsibly. We participate in electronic waste recycling programs and provide information on how to properly dispose of electronic devices. We also strive to minimize our environmental impact through energy conservation and waste reduction.
-
-**10. Data Privacy and Security** [POL-PRIVACY-001]
-
-TechNest is committed to protecting the privacy and security of customer data. We collect and use customer data only for legitimate business purposes, such as processing orders, providing customer support, and improving our products and services. We implement appropriate security measures to protect customer data from unauthorized access, use, or disclosure. Our full Privacy Policy is available on our website.
-```
+[POL-COMM-002] Escalation
+Rule: Escalation: Available for orders over $1000
+Conditions: item_over_500

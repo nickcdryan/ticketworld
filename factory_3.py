@@ -592,153 +592,203 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 }
             )
         ],
-    "product_defect": [
-        {
-            "scenario_id": "DEFECT-001",
-            "name": "warranty_claim",
-            "description": "Product failed within warranty period",
-            "policy_clauses": ["POL-WARRANTY-001", "POL-WARRANTY-002"],
-            "expected_outcome": "approve",  # Should be approved
-            "customer_situation": {
-                "months_since_purchase": "2-11",
-                "customer_expectation": "free_repair_or_replacement",
-                "complication": "none"
-            },
-            "email_patterns": {
-                "should_mention": ["product_name", "issue_description", "purchase_timeframe"],
-                "might_omit": ["warranty_registration"],
-                "tone_modifier": "matter_of_fact"
-            }
-        },
-        {
-            "scenario_id": "DEFECT-002",
-            "name": "water_damage_claim",
-            "description": "Product damaged by water",
-            "policy_clauses": ["POL-WARRANTY-001", "POL-WARRANTY-003"],
-            "expected_outcome": "deny",  # Should be denied - water damage not covered
-            "customer_situation": {
-                "days_since_purchase": "30-60",
-                "customer_expectation": "warranty_replacement",
-                "complication": "water_damage"
-            },
-            "email_patterns": {
-                "should_mention": ["product_name", "spilled_liquid", "stopped_working"],
-                "might_omit": ["water_damage_admission"],
-                "tone_modifier": "hopeful"
-            }
-        }
-    ],
-    "pricing_dispute": [
-        {
-            "scenario_id": "PRICE-001",
-            "name": "price_match_request",
-            "description": "Customer found lower price elsewhere",
-            "policy_clauses": ["POL-PRICE-001", "POL-PRICE-002"],
-            "expected_outcome": "conditional",  # Depends on retailer
-            "customer_situation": {
-                "days_since_purchase": "1-14",
-                "customer_expectation": "price_difference_refunded",
-                "complication": "competitor_type"
-            },
-            "email_patterns": {
-                "should_mention": ["competitor_name", "competitor_price", "product_name"],
-                "might_omit": ["exact_url"],
-                "tone_modifier": "expecting_cooperation"
-            }
-        },
-        {
-            "scenario_id": "PRICE-002",
-            "name": "price_match_too_late",
-            "description": "Price match request after 14-day window",
-            "policy_clauses": ["POL-PRICE-001"],
-            "expected_outcome": "deny",  # Should be denied - outside window
-            "customer_situation": {
-                "days_since_purchase": "20-30",
-                "customer_expectation": "price_adjustment",
-                "complication": "outside_window"
-            },
-            "email_patterns": {
-                "should_mention": ["purchase_date", "current_price", "just_noticed"],
-                "might_omit": ["exact_days"],
-                "tone_modifier": "disappointed"
-            }
-        }
-    ],
-    "order_status": [
-        {
-            "scenario_id": "STATUS-001",
-            "name": "cancel_shipped_order",
-            "description": "Customer wants to cancel already shipped order",
-            "policy_clauses": ["POL-ORDER-001", "POL-SHIP-001"],
-            "expected_outcome": "deny",  # Should be denied - already shipped
-            "customer_situation": {
-                "days_since_order": "3-5",
-                "customer_expectation": "order_cancelled",
-                "complication": "already_shipped"
-            },
-            "email_patterns": {
-                "should_mention": ["cancel_order", "changed_mind"],
-                "might_omit": ["order_status"],
-                "tone_modifier": "urgent"
-            }
-        }
-    ],
-    "warranty_claim": [
-        {
-            "scenario_id": "WARRANTY-001",
-            "name": "expired_warranty",
-            "description": "Product issue after warranty expired",
-            "policy_clauses": ["POL-WARRANTY-001"],
-            "expected_outcome": "deny",  # Should be denied - warranty expired
-            "customer_situation": {
-                "months_since_purchase": "13-18",
-                "customer_expectation": "free_repair",
-                "complication": "warranty_expired"
-            },
-            "email_patterns": {
-                "should_mention": ["product_name", "issue_description", "purchase_timeframe"],
-                "might_omit": ["exact_warranty_period"],
-                "tone_modifier": "hopeful"
-            }
-        }
-    ],
-    "general_inquiry": [
-        {
-            "scenario_id": "GENERAL-001",
-            "name": "product_availability",
-            "description": "Customer asking about product availability or restock",
-            "policy_clauses": ["POL-COMM-001"],
-            "expected_outcome": "information",  # Just provide info
-            "customer_situation": {
-                "days_since_order": "0",
-                "customer_expectation": "information",
-                "complication": "none"
-            },
-            "email_patterns": {
-                "should_mention": ["product_interest", "availability_question"],
-                "might_omit": ["specific_model"],
-                "tone_modifier": "curious"
-            }
-        },
-        {
-            "scenario_id": "GENERAL-002",
-            "name": "modify_processing_order",
-            "description": "Customer wants to modify an order already in processing",
-            "policy_clauses": ["POL-ORDER-001"],
-            "expected_outcome": "deny",  # Should be denied - past 2 hour window
-            "customer_situation": {
-                "days_since_order": "1-2",
-                "customer_expectation": "change_accepted",
-                "complication": "already_processing"
-            },
-            "email_patterns": {
-                "should_mention": ["order_id", "requested_change"],
-                "might_omit": ["original_items"],
-                "tone_modifier": "hopeful"
-            }
-        }
-    ]
-}
+        "warranty_claim": [
+            ScenarioTemplate(
+                scenario_id="WARRANTY-001",
+                name="warranty_claim_valid",
+                description="Product failed within warranty period",
+                primary_policy="POL-WARRANTY-002",
+                context_requirements={
+                    "months_since_purchase": (2, 11),
+                    "damage_type": "manufacturing"
+                },
+                expected_outcome="approve",
+                complexity_level=1,
+                customer_situation={
+                    "customer_expectation": "free_repair_or_replacement",
+                    "complication": "none"
+                },
+                email_patterns={
+                    "should_mention": ["product_name", "issue_description", "purchase_timeframe"],
+                    "might_omit": ["warranty_registration"],
+                    "tone_modifier": "matter_of_fact"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="WARRANTY-002",
+                name="water_damage_claim",
+                description="Product damaged by water",
+                primary_policy="POL-WARRANTY-003",
+                context_requirements={
+                    "months_since_purchase": (1, 8),
+                    "damage_type": "water"
+                },
+                expected_outcome="deny",
+                complexity_level=2,  # Warranty exclusion
+                customer_situation={
+                    "customer_expectation": "warranty_replacement",
+                    "complication": "water_damage"
+                },
+                email_patterns={
+                    "should_mention": ["product_name", "spilled_liquid", "stopped_working"],
+                    "might_omit": ["water_damage_admission"],
+                    "tone_modifier": "hopeful"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="WARRANTY-003",
+                name="expired_warranty",
+                description="Product issue after warranty expired",
+                primary_policy="POL-WARRANTY-001",
+                context_requirements={
+                    "months_since_purchase": (13, 18),
+                    "damage_type": "manufacturing"
+                },
+                expected_outcome="deny",
+                complexity_level=1,
+                customer_situation={
+                    "customer_expectation": "free_repair",
+                    "complication": "warranty_expired"
+                },
+                email_patterns={
+                    "should_mention": ["product_name", "issue_description", "purchase_timeframe"],
+                    "might_omit": ["exact_warranty_period"],
+                    "tone_modifier": "hopeful"
+                }
+            )
+        ],
+        "pricing_dispute": [
+            ScenarioTemplate(
+                scenario_id="PRICE-001",
+                name="price_match_valid",
+                description="Customer found lower price at authorized retailer",
+                primary_policy="POL-PRICE-001",
+                context_requirements={
+                    "days_since_purchase": (1, 14),
+                    "competitor_type": "authorized"
+                },
+                expected_outcome="approve",
+                complexity_level=2,  # Need to verify retailer
+                customer_situation={
+                    "customer_expectation": "price_difference_refunded",
+                    "complication": "competitor_verification"
+                },
+                email_patterns={
+                    "should_mention": ["competitor_name", "competitor_price", "product_name"],
+                    "might_omit": ["exact_url"],
+                    "tone_modifier": "expecting_cooperation"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="PRICE-002",
+                name="price_match_too_late",
+                description="Price match request after 14-day window",
+                primary_policy="POL-PRICE-001",
+                context_requirements={
+                    "days_since_purchase": (20, 30),
+                    "competitor_type": "authorized"
+                },
+                expected_outcome="deny",
+                complexity_level=1,
+                customer_situation={
+                    "customer_expectation": "price_adjustment",
+                    "complication": "outside_window"
+                },
+                email_patterns={
+                    "should_mention": ["purchase_date", "current_price", "just_noticed"],
+                    "might_omit": ["exact_days"],
+                    "tone_modifier": "disappointed"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="PRICE-003",
+                name="price_match_marketplace",
+                description="Customer found lower price at marketplace seller",
+                primary_policy="POL-PRICE-002",
+                context_requirements={
+                    "days_since_purchase": (1, 10),
+                    "competitor_type": "marketplace"
+                },
+                expected_outcome="deny",
+                complexity_level=2,  # Policy exclusion
+                customer_situation={
+                    "customer_expectation": "price_difference_refunded",
+                    "complication": "marketplace_exclusion"
+                },
+                email_patterns={
+                    "should_mention": ["marketplace_seller", "much_lower_price", "product_name"],
+                    "might_omit": ["seller_authorization"],
+                    "tone_modifier": "disappointed"
+                }
+            )
+        ],
+        "order_status": [
+            ScenarioTemplate(
+                scenario_id="ORDER-001",
+                name="cancel_shipped_order",
+                description="Customer wants to cancel already shipped order",
+                primary_policy="POL-ORDER-001",
+                context_requirements={
+                    "days_since_order": (3, 5),
+                    "order_status": "shipped"
+                },
+                expected_outcome="deny",
+                complexity_level=1,
+                customer_situation={
+                    "customer_expectation": "order_cancelled",
+                    "complication": "already_shipped"
+                },
+                email_patterns={
+                    "should_mention": ["cancel_order", "changed_mind"],
+                    "might_omit": ["order_status"],
+                    "tone_modifier": "urgent"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="ORDER-002",
+                name="modify_processing_order",
+                description="Customer wants to modify an order in processing",
+                primary_policy="POL-ORDER-001",
+                context_requirements={
+                    "hours_since_order": (3, 24),
+                    "order_status": "processing"
+                },
+                expected_outcome="deny",
+                complexity_level=1,
+                customer_situation={
+                    "customer_expectation": "change_accepted",
+                    "complication": "past_modification_window"
+                },
+                email_patterns={
+                    "should_mention": ["order_id", "requested_change"],
+                    "might_omit": ["time_restriction"],
+                    "tone_modifier": "hopeful"
+                }
+            )
+        ],
+        "general_inquiry": [
+            ScenarioTemplate(
+                scenario_id="GENERAL-001",
+                name="product_availability",
+                description="Customer asking about product availability",
+                primary_policy="POL-COMM-001",
+                context_requirements={},
+                expected_outcome="information",
+                complexity_level=1,
+                customer_situation={
+                    "customer_expectation": "information",
+                    "complication": "none"
+                },
+                email_patterns={
+                    "should_mention": ["product_interest", "availability_question"],
+                    "might_omit": ["specific_model"],
+                    "tone_modifier": "curious"
+                }
+            )
+        ]
+    }
+    
+    return templates
 
 # Scenario dimension probabilities for coverage
 SCENARIO_DIMENSIONS = {
@@ -880,61 +930,9 @@ def weighted_choice(choices: Dict[str, float]) -> str:
     return random.choices(items, weights=weights)[0]
 
 
-def generate_company_policy(config: DatasetConfig) -> str:
-    """Generate a simple, rule-based company policy document."""
-    
-    system_prompt = f"""You are creating a simple, rule-based customer service policy document for {config.company_name}, 
-    a consumer electronics retailer. Every rule must be absolute with no ambiguity - only yes/no, allowed/not allowed."""
-    
-    prompt = f"""Generate a simple customer service policy document for {config.company_name} with clear, discrete rules:
-
-1. Return Policy [POL-RETURN-001 to POL-RETURN-004]
-   - ALL returns require receipt
-   - ALL items: 30-day return window from delivery date
-   - Unopened items: Full refund
-   - Opened items: 15% restocking fee  
-   - Defective items: Full refund, no restocking fee
-   - No returns accepted after 30 days for any reason
-   - No returns without receipt
-
-2. Shipping Policy [POL-SHIP-001 to POL-SHIP-005]
-   - Standard shipping (5-7 days): Free on orders over $50, otherwise $9.99
-   - Express shipping (2-3 days): $19.99
-   - Package not received: Replacement sent after carrier investigation (3 business days)
-   - Wrong item shipped: Free return label provided, correct item sent
-   - Damaged items over $500: Photo required before replacement approved
-   - Damaged items under $500: Immediate replacement
-
-3. Warranty Policy [POL-WARRANTY-001 to POL-WARRANTY-003]
-   - Manufacturer warranty: 1 year from purchase date
-   - Defects covered: Manufacturing defects only
-   - Not covered: Physical damage, water damage, normal wear
-   - Process: Return to {config.company_name} within warranty period
-   - No warranty service after 1 year
-
-4. Price Match Policy [POL-PRICE-001 to POL-PRICE-002]
-   - Authorized retailers only: Price matched within 14 days of purchase
-   - Exclusions: Marketplace sellers, clearance items, bundles
-   - Refund method: Original payment method
-   - No price match after 14 days
-
-5. Order Modification Policy [POL-ORDER-001]
-   - Changes allowed: Within 2 hours of order placement
-   - After 2 hours: Order cannot be modified
-   - Shipped orders: Cannot be cancelled
-
-6. Customer Service Standards [POL-COMM-001 to POL-COMM-002]
-   - Response time: Within 24 hours
-   - Escalation: Available for orders over $1000
-
-IMPORTANT: 
-- Use exact policy tags like [POL-RETURN-001]
-- No conditional language (no "may", "might", "could", "should consider")
-- Every rule is absolute - yes or no, allowed or not allowed
-- Include specific dollar amounts and time periods
-- Return as plain text, not JSON"""
-    
-    return call_llm(prompt, system_prompt)
+def generate_company_policy_from_graph(config: DatasetConfig, policy_graph: PolicyGraph) -> str:
+    """Generate policy document from policy graph (without metadata for ML training)."""
+    return policy_graph.generate_policy_text()
 
 
 def generate_product_catalog(config: DatasetConfig) -> List[Dict]:
@@ -1119,53 +1117,109 @@ def generate_orders(config: DatasetConfig, customers: List[Dict], products: List
     return orders
 
 
-def select_scenario_template(query_type: str, order: Dict, customer: Dict, products: List[Dict]) -> Dict:
-    """Select and customize a scenario template based on order details."""
+def select_and_customize_scenario(policy_graph: PolicyGraph, scenario_templates: Dict[str, List[ScenarioTemplate]], 
+                                 query_type: str, order: Dict, customer: Dict, products: List[Dict]) -> Dict:
+    """Select and customize a scenario template with policy graph integration."""
     
     # Get templates for this query type
-    templates = SCENARIO_TEMPLATES.get(query_type, [])
+    templates = scenario_templates.get(query_type, [])
     if not templates:
         # Fallback if query type not found
-        templates = SCENARIO_TEMPLATES["return_request"]
+        templates = scenario_templates["return_request"]
     
     # Select a random template
     template = random.choice(templates)
     
-    # Calculate days since order (if order exists)
-    if order and "order_date" in order:
-        order_date = datetime.datetime.strptime(order["order_date"], "%Y-%m-%d")
-        days_since_order = (datetime.datetime.now() - order_date).days
-    else:
-        days_since_order = 0
+    # Calculate order context
+    context = build_order_context(order, customer, products)
     
-    # Customize template based on actual order data
+    # Get all related policies using the policy graph
+    primary_policy = template.primary_policy
+    related_policies = policy_graph.get_related_policies(primary_policy, max_hops=2)
+    all_relevant_policies = [primary_policy] + related_policies
+    
+    # Filter policies based on context
+    applicable_policies = policy_graph.resolve_conflicts(all_relevant_policies, context)
+    
+    # Customize scenario based on actual order data and policy interactions
     scenario = {
-        "scenario_id": template["scenario_id"],
-        "name": template["name"],
-        "description": template["description"],
-        "policy_clauses": template["policy_clauses"],
-        "expected_outcome": template.get("expected_outcome", "unknown"),
+        "scenario_id": template.scenario_id,
+        "name": template.name,
+        "description": template.description,
+        "primary_policy": template.primary_policy,
+        "all_relevant_policies": all_relevant_policies,  # For generation use
+        "applicable_policies": applicable_policies,      # After conflict resolution
+        "expected_outcome": template.expected_outcome,
+        "complexity_level": template.complexity_level,
         "query_type": query_type,
         "order": order,
         "customer": customer,
         "products": products,
-        "days_since_order": days_since_order,
-        "customer_situation": template["customer_situation"].copy(),
-        "email_patterns": template["email_patterns"].copy()
+        "context": context,
+        "customer_situation": template.customer_situation.copy(),
+        "email_patterns": template.email_patterns.copy(),
+        "_template_context_requirements": template.context_requirements  # Hidden for ML
     }
     
     return scenario
 
-
-def generate_customer_email_v2(scenario: Dict, dimensions: Dict[str, str]) -> Dict:
-    """Generate a customer email based on real order data and scenario."""
+def build_order_context(order: Dict, customer: Dict, products: List[Dict]) -> Dict[str, Any]:
+    """Build context dictionary for policy evaluation."""
+    context = {
+        "has_receipt": True,  # Default assumption for database orders
+        "customer_tier": "standard"
+    }
     
-    system_prompt = """You are simulating realistic customer support emails. 
+    if order:
+        # Calculate time-based context
+        order_date = datetime.datetime.strptime(order["order_date"], "%Y-%m-%d")
+        days_since_order = (datetime.datetime.now() - order_date).days
+        months_since_order = days_since_order / 30.44  # Average month length
+        
+        context.update({
+            "days_since_purchase": days_since_order,
+            "months_since_purchase": months_since_order,
+            "order_status": order.get("order_status", "delivered"),
+            "total_order_value": order.get("total_amount", 0)
+        })
+        
+        # Calculate order value context
+        if order.get("total_amount", 0) > 500:
+            context["item_over_500"] = True
+        
+        # Check if it's a holiday purchase (Nov-Dec)
+        purchase_month = order_date.month
+        if purchase_month in [11, 12]:
+            context["purchase_month"] = purchase_month
+        
+        # Product-specific context
+        if order.get("items") and products:
+            max_item_value = 0
+            for item in order["items"]:
+                item_value = item.get("price_paid", 0) * item.get("quantity", 1)
+                max_item_value = max(max_item_value, item_value)
+            context["item_value"] = max_item_value
+    
+    return context
+
+
+def generate_customer_email_v3(scenario: Dict, dimensions: Dict[str, str]) -> Dict:
+    """Generate an email FROM a customer TO customer support.
+    
+    This simulates the initial incoming ticket - a customer writing to support 
+    about their issue. The customer does NOT have access to internal policies
+    or systems, they're just describing their problem from their perspective.
+    """
+    
+    system_prompt = """You are simulating a customer writing an email TO customer support. 
+    You are the customer who needs help, NOT the customer service representative.
+    Write from the customer's perspective as someone contacting support for assistance.
     Use ONLY the provided order, customer, and product information. Do not invent any details."""
     
     order = scenario.get("order")
     customer = scenario["customer"]
     products = scenario.get("products", [])
+    context = scenario.get("context", {})
     
     # Build product details string
     product_details = []
@@ -1181,9 +1235,10 @@ def generate_customer_email_v2(scenario: Dict, dimensions: Dict[str, str]) -> Di
     
     # Build order information section
     if order:
+        days_since_order = context.get("days_since_purchase", 0)
         order_info = f"""ORDER INFORMATION (use exactly):
 - Order ID: {order['order_id']}
-- Order Date: {order['order_date']} ({scenario['days_since_order']} days ago)
+- Order Date: {order['order_date']} ({days_since_order} days ago)
 - Products: {json.dumps(product_details)}
 - Total: ${order['total_amount']}
 - Shipping Method: {order['shipping_method']}
@@ -1192,16 +1247,29 @@ def generate_customer_email_v2(scenario: Dict, dimensions: Dict[str, str]) -> Di
     else:
         order_info = "ORDER INFORMATION: No specific order (general inquiry)"
     
-    prompt = f"""Write a customer support email based on this EXACT information:
+    # Add scenario complexity and context hints
+    complexity_note = ""
+    if scenario.get("complexity_level", 1) > 1:
+        complexity_note = f"\nComplexity Level: {scenario['complexity_level']} (customer may not understand all policy nuances)"
+    
+    prompt = f"""Write an email FROM a customer TO customer support based on this EXACT information:
 
 SCENARIO: {scenario['description']}
 Query Type: {scenario['query_type']}
+Primary Policy Area: {scenario.get('primary_policy', 'Unknown')}
+{complexity_note}
 
 CUSTOMER INFORMATION (use exactly):
 - Name: {customer['name']}
 - Email: {customer['primary_email']}
 
 {order_info}
+
+CONTEXT CLUES (customer probably doesn't know these policy details):
+- Days since purchase: {context.get('days_since_purchase', 'N/A')}
+- Item value: ${context.get('item_value', 'N/A')}
+- Order status: {context.get('order_status', 'N/A')}
+- Has receipt: {context.get('has_receipt', True)}
 
 EMAIL REQUIREMENTS:
 - Sentiment: {dimensions['customer_sentiment']} with {scenario['email_patterns']['tone_modifier']} modifier
@@ -1216,7 +1284,11 @@ Based on the scenario and information completeness:
 - If "minimal_details": Be vague about specifics
 - If "incorrect_info": Slightly misremember one detail (like confusing product names)
 
-Write a natural email that fits this scenario. The customer is contacting support because: {scenario['description']}
+Write a natural email from the CUSTOMER'S perspective. Remember:
+- You are the customer who has the problem described in: {scenario['description']}
+- You are writing TO customer support asking for help
+- You do NOT have access to internal policies, systems, or detailed company procedures
+- You only know what a typical customer would know about their own order
 
 Format as JSON:
 {{
@@ -1238,31 +1310,38 @@ IMPORTANT: Use ONLY the information provided above. Do not invent order numbers,
     return email
 
 
-def generate_resolution_v2(email: Dict, scenario: Dict, policy: str, dimensions: Dict[str, str]) -> Dict:
-    """Generate a resolution using exact order data and pre-selected policies."""
+def generate_resolution_v3(email: Dict, scenario: Dict, policy_graph: PolicyGraph, dimensions: Dict[str, str]) -> Dict:
+    """Generate a resolution plan FROM a customer service representative.
+    
+    This simulates what happens AFTER receiving the customer's email:
+    - The CSR looks up customer information in internal systems
+    - Reviews company policies and their interactions
+    - Creates an action plan to resolve the customer's issue
+    - Has full access to internal data, policies, and procedures
+    """
     
     system_prompt = """You are an expert customer service professional. Create resolutions using ONLY 
-    the provided information and cite ONLY the specified policy sections. Follow policies exactly with no exceptions.
-    DENY requests that violate policy."""
+    the provided information and policies. Follow policies exactly with no exceptions.
+    Consider ALL applicable policies and their interactions. DENY requests that violate policy."""
     
     order = scenario.get("order")
     customer = scenario["customer"]
     products = scenario.get("products", [])
+    context = scenario.get("context", {})
     
-    # Extract only the relevant policy sections
-    relevant_policies = []
-    for clause in scenario["policy_clauses"]:
-        # Find lines containing this policy clause
-        policy_lines = [line for line in policy.split('\n') if clause in line]
-        if policy_lines:
-            # Get the section around this clause
-            start_idx = policy.find(policy_lines[0])
-            end_idx = policy.find('\n\n', start_idx)
-            if end_idx == -1:
-                end_idx = len(policy)
-            relevant_policies.append(policy[start_idx:end_idx])
+    # Get applicable policies from the scenario (already resolved by policy graph)
+    applicable_policies = scenario.get("applicable_policies", [scenario.get("primary_policy")])
     
-    relevant_policy_text = "\n\n".join(relevant_policies)
+    # Build policy text for these specific policies
+    policy_text_sections = []
+    for policy_id in applicable_policies:
+        if policy_id in policy_graph.clauses:
+            clause = policy_graph.clauses[policy_id]
+            policy_text_sections.append(f"[{policy_id}] {clause.title}\nRule: {clause.rule}")
+            if clause.conditions:
+                policy_text_sections.append(f"Conditions: {', '.join(clause.conditions)}")
+    
+    relevant_policy_text = "\n\n".join(policy_text_sections)
     
     # Build order information section with product values
     product_values = {}
@@ -1277,15 +1356,26 @@ def generate_resolution_v2(email: Dict, scenario: Dict, policy: str, dimensions:
         order_info = f"""VERIFIED ORDER INFORMATION:
 - Order ID: {order['order_id']}
 - Order Date: {order['order_date']}
-- Days Since Order: {scenario.get('days_since_order', 'N/A')}
+- Days Since Purchase: {context.get('days_since_purchase', 'N/A')}
+- Months Since Purchase: {context.get('months_since_purchase', 'N/A'):.1f}
 - Items with values: {json.dumps(product_values, indent=2)}
 - Total Order Value: ${order['total_amount']}
-- Status: {order['order_status']}
+- Order Status: {order['order_status']}
 
 PRODUCTS IN ORDER WITH PRICES:
 {json.dumps(products, indent=2)}"""
     else:
         order_info = "VERIFIED ORDER INFORMATION: No specific order (general inquiry)"
+    
+    # Build detailed context section
+    context_info = f"""POLICY EVALUATION CONTEXT:
+- Days since purchase: {context.get('days_since_purchase', 'N/A')}
+- Months since purchase: {context.get('months_since_purchase', 'N/A')}
+- Item value: ${context.get('item_value', 'N/A')}
+- Order status: {context.get('order_status', 'N/A')}
+- Has receipt: {context.get('has_receipt', True)}
+- Item over $500: {context.get('item_over_500', False)}
+- Purchase month: {context.get('purchase_month', 'N/A')}"""
     
     prompt = f"""Create a professional resolution for this customer support case:
 
@@ -1299,31 +1389,38 @@ VERIFIED CUSTOMER INFORMATION:
 
 {order_info}
 
-SCENARIO CONTEXT:
+{context_info}
+
+SCENARIO DETAILS:
 - Issue Type: {scenario['description']}
+- Primary Policy: {scenario.get('primary_policy', 'Unknown')}
+- Complexity Level: {scenario.get('complexity_level', 1)}
 - Customer Expectation: {scenario['customer_situation']['customer_expectation']}
 - Complication: {scenario['customer_situation']['complication']}
-- Days Since Order: {scenario.get('days_since_order', 'N/A')}
-- Expected Outcome Hint: {scenario.get('expected_outcome', 'unknown')}
+- Expected Outcome: {scenario.get('expected_outcome', 'unknown')}
 
-RELEVANT POLICIES (follow these EXACTLY):
+APPLICABLE POLICIES (These are the ONLY policies that apply after analyzing interactions):
 {relevant_policy_text}
 
-REQUIRED POLICY REFERENCES: {scenario['policy_clauses']}
+POLICY INTERACTION NOTES:
+- All policy conflicts have been resolved
+- Higher precedence policies override lower precedence ones
+- Conditions have been checked against the context above
 
-CRITICAL RULES:
+CRITICAL ENFORCEMENT RULES:
 1. Include order_id and order_date in the resolution
-2. ALL actions must be based on cited policies - no exceptions
-3. DENY requests that violate policy:
-   - Returns after 30 days: DENY
+2. ALL actions must be based on the applicable policies above
+3. STRICTLY enforce policy conditions:
+   - Returns after 30 days: DENY (unless holiday extension applies)
    - Returns without receipt: DENY  
    - Price match after 14 days: DENY
    - Order modification after 2 hours: DENY
    - Cancellation of shipped orders: DENY
    - Warranty claims after 1 year: DENY
    - Water damage warranty claims: DENY
-4. For damaged items over $500, MUST request photo before approving replacement
+4. For damaged items over $500, MUST request photo per POL-SHIP-005
 5. Value in actions must match actual product prices from order
+6. Consider policy interactions (e.g., defective items override restocking fees)
 
 Create a resolution with this structure:
 {{
@@ -1332,14 +1429,15 @@ Create a resolution with this structure:
     "customer_lookup": {{
         "status": "found",
         "customer_id": "{customer['customer_id']}",
-        "lookup_method": "email_match" or "order_lookup",
-        "notes": "Any lookup observations"
+        "lookup_method": "email_match",
+        "notes": "Customer found in database"
     }},
-    "policy_references": {scenario['policy_clauses']},
+    "policy_references": {applicable_policies},
+    "policy_reasoning": "Brief explanation of how policies interact for this case",
     "actions": [
         {{
             "type": "action from {RESOLUTION_ACTIONS}",
-            "reason": "Detailed reason citing specific policies by tag (e.g., per POL-RETURN-001)",
+            "reason": "Detailed reason citing specific policies by tag",
             "value": exact dollar amount from product prices if refund/replacement (0 for denials),
             "details": "Specific implementation details"
         }}
@@ -1351,18 +1449,17 @@ Create a resolution with this structure:
 }}
 
 IMPORTANT: 
-- Must include order_id and order_date fields
-- Check all policy requirements and DENY if violated
-- Every action must cite a specific policy clause
-- Use exact product prices from order for value calculations
-- Be clear about denials - use deny_* action types
+- Use ONLY the applicable policies listed above
+- Every action must cite specific policy clauses
+- Be precise about denials - use deny_* action types when policies are violated
+- Consider all policy interactions when making decisions
 
 Return ONLY the JSON object."""
     
     resolution_text = call_llm(prompt, system_prompt)
     resolution = safe_json_parse(resolution_text, "object")
     
-    # Validate and ensure consistency
+    # Enhanced validation using policy graph
     if resolution and isinstance(resolution, dict):
         # Ensure correct order and customer info
         if order:
@@ -1375,18 +1472,30 @@ Return ONLY the JSON object."""
         if "customer_lookup" in resolution:
             resolution["customer_lookup"]["customer_id"] = customer["customer_id"]
         
-        # Ensure only specified policies are referenced
-        resolution["policy_references"] = scenario["policy_clauses"]
+        # Ensure only applicable policies are referenced
+        resolution["policy_references"] = applicable_policies
         
-        # Additional validation for policy compliance
-        if "actions" in resolution and scenario.get("days_since_order") is not None:
-            days = scenario["days_since_order"]
-            
+        # Policy-aware validation
+        if "actions" in resolution:
             for action in resolution["actions"]:
-                # Enforce return window
-                if action["type"] == "process_return" and days > 30:
-                    action["type"] = "deny_return"
-                    action["reason"] = f"Return request is outside 30-day window (order is {days} days old) per POL-RETURN-001"
+                # Use policy graph to validate action against context
+                days_since_purchase = context.get("days_since_purchase", 0)
+                
+                # Validate return window
+                if action["type"] == "process_return" and days_since_purchase > 30:
+                    # Check for holiday extension
+                    if "POL-HOLIDAY-001" in applicable_policies and context.get("purchase_month") in [11, 12] and days_since_purchase <= 45:
+                        pass  # Holiday extension applies
+                    else:
+                        action["type"] = "deny_return"
+                        action["reason"] = f"Return request outside 30-day window ({days_since_purchase} days) per POL-RETURN-001"
+                        action["value"] = 0
+                
+                # Validate warranty claims
+                months_since_purchase = context.get("months_since_purchase", 0)
+                if action["type"] == "honor_warranty" and months_since_purchase > 12:
+                    action["type"] = "deny_warranty_claim"
+                    action["reason"] = f"Warranty expired ({months_since_purchase:.1f} months) per POL-WARRANTY-001"
                     action["value"] = 0
     else:
         print(f"ERROR: Failed to generate resolution")
@@ -1395,9 +1504,9 @@ Return ONLY the JSON object."""
     return resolution
 
 
-def create_complete_ticket_v2(config: DatasetConfig, scenario: Dict, email: Dict, 
+def create_complete_ticket_v3(config: DatasetConfig, scenario: Dict, email: Dict, 
                              resolution: Dict, dimensions: Dict[str, str]) -> Dict:
-    """Combine all elements into a complete ticket with full traceability."""
+    """Combine all elements into a complete ticket with enhanced policy traceability."""
     
     ticket = {
         "ticket_id": f"TK-{datetime.datetime.now().strftime('%Y%m%d')}-{random.randint(1000, 9999)}",
@@ -1410,17 +1519,37 @@ def create_complete_ticket_v2(config: DatasetConfig, scenario: Dict, email: Dict
         "resolution_plan": resolution
     }
     
-    # Add debug info if configured
+    # Add debug info if configured (this will be stripped for ML training)
     if config.include_debug_info:
         ticket["_scenario_dimensions"] = dimensions
         ticket["_scenario_template"] = {
             "scenario_id": scenario["scenario_id"],
             "name": scenario["name"],
-            "policy_clauses": scenario["policy_clauses"],
+            "primary_policy": scenario.get("primary_policy"),
+            "complexity_level": scenario.get("complexity_level"),
             "expected_outcome": scenario.get("expected_outcome", "unknown")
+        }
+        ticket["_policy_analysis"] = {
+            "all_relevant_policies": scenario.get("all_relevant_policies", []),
+            "applicable_policies": scenario.get("applicable_policies", []),
+            "context_used": scenario.get("context", {}),
+            "policy_interactions": "Multi-hop reasoning required" if len(scenario.get("all_relevant_policies", [])) > 1 else "Single policy"
         }
     
     return ticket
+
+def strip_debug_metadata(ticket: Dict) -> Dict:
+    """Remove debug metadata to create clean training data."""
+    clean_ticket = ticket.copy()
+    keys_to_remove = [
+        "_scenario_dimensions", 
+        "_scenario_template", 
+        "_policy_analysis",
+        "_template_context_requirements"
+    ]
+    for key in keys_to_remove:
+        clean_ticket.pop(key, None)
+    return clean_ticket
 
 
 def load_existing_data(config: DatasetConfig) -> Tuple[str, List[Dict], List[Dict], List[Dict]]:
@@ -1483,6 +1612,84 @@ def save_dataset(config: DatasetConfig, tickets: List[Dict], policy: str,
         print(f"- Company policy in {config.policy_file}")
     print(f"- Database with {len(customers)} customers, {len(orders)} orders, {len(products)} products")
 
+def save_policy_graph(policy_graph: PolicyGraph, config: DatasetConfig):
+    """Save policy graph structure for analysis."""
+    
+    # Convert policy graph to serializable format
+    graph_data = {
+        "metadata": {
+            "total_clauses": len(policy_graph.clauses),
+            "generated_at": datetime.datetime.now().isoformat(),
+            "description": "Policy graph showing clause interactions for multi-hop reasoning"
+        },
+        "clauses": {},
+        "interaction_summary": {},
+        "complexity_analysis": {}
+    }
+    
+    # Serialize all policy clauses
+    for clause_id, clause in policy_graph.clauses.items():
+        graph_data["clauses"][clause_id] = {
+            "title": clause.title,
+            "rule": clause.rule,
+            "category": clause.category,
+            "precedence": clause.precedence,
+            "conditions": clause.conditions,
+            "interactions": {
+                "interacts_with": clause.interacts_with,
+                "modifies": clause.modifies,
+                "modified_by": clause.modified_by,
+                "overrides": clause.overrides,
+                "overridden_by": clause.overridden_by,
+                "requires": clause.requires
+            },
+            "total_connections": len(clause.interacts_with + clause.modifies + clause.modified_by + 
+                                   clause.overrides + clause.overridden_by + clause.requires)
+        }
+    
+    # Generate interaction summary
+    for clause_id in policy_graph.clauses.keys():
+        related = policy_graph.get_related_policies(clause_id, max_hops=3)
+        graph_data["interaction_summary"][clause_id] = {
+            "direct_connections": len(policy_graph.interaction_graph.get(clause_id, [])),
+            "reachable_within_3_hops": len(related),
+            "related_policies": related[:5]  # Top 5 for readability
+        }
+    
+    # Complexity analysis
+    precedence_groups = {}
+    category_counts = {}
+    for clause in policy_graph.clauses.values():
+        # Group by precedence
+        prec = clause.precedence
+        if prec not in precedence_groups:
+            precedence_groups[prec] = []
+        precedence_groups[prec].append(clause.clause_id)
+        
+        # Count by category
+        cat = clause.category
+        category_counts[cat] = category_counts.get(cat, 0) + 1
+    
+    graph_data["complexity_analysis"] = {
+        "precedence_groups": precedence_groups,
+        "category_distribution": category_counts,
+        "total_unique_interactions": len(set().union(*[
+            clause.interacts_with + clause.modifies + clause.modified_by + 
+            clause.overrides + clause.overridden_by + clause.requires
+            for clause in policy_graph.clauses.values()
+        ])),
+        "max_precedence": max(c.precedence for c in policy_graph.clauses.values()),
+        "min_precedence": min(c.precedence for c in policy_graph.clauses.values())
+    }
+    
+    # Save to file
+    graph_path = config.get_filepath("policy_graph.json")
+    with open(graph_path, "w") as f:
+        json.dump(graph_data, f, indent=2)
+    
+    print(f"- Policy graph structure in policy_graph.json")
+    return graph_data
+
 
 def main(config: DatasetConfig):
     """Main generation pipeline."""
@@ -1498,6 +1705,11 @@ def main(config: DatasetConfig):
             policy, customers, orders, products = load_existing_data(config)
             existing_tickets = load_existing_tickets(config)
             print(f"Loaded {len(existing_tickets)} existing tickets")
+            
+            # Recreate policy graph and scenario templates for consistency
+            policy_graph = create_policy_graph(config)
+            scenario_templates = create_scenario_templates()
+            print(f"Recreated policy graph and scenario templates")
         except FileNotFoundError as e:
             print(f"Error: Could not find existing data files. Please run in 'create' mode first.")
             print(f"Missing file: {e}")
@@ -1508,8 +1720,17 @@ def main(config: DatasetConfig):
         
         # Phase 1: Company Foundation
         print("\nPhase 1: Generating company foundation...")
-        print("- Generating company policy document...")
-        policy = generate_company_policy(config)
+        print("- Creating policy graph...")
+        policy_graph = create_policy_graph(config)
+        print(f"  ✓ Created policy graph with {len(policy_graph.clauses)} policy clauses")
+        
+        print("- Generating policy document from graph...")
+        policy = generate_company_policy_from_graph(config, policy_graph)
+        
+        print("- Creating scenario templates...")
+        scenario_templates = create_scenario_templates()
+        template_count = sum(len(templates) for templates in scenario_templates.values())
+        print(f"  ✓ Created {template_count} scenario templates across {len(scenario_templates)} categories")
         
         print(f"- Generating {config.num_products} products...")
         products = generate_product_catalog(config)
@@ -1586,25 +1807,28 @@ def main(config: DatasetConfig):
         else:
             print(f"  Customer: {customer['customer_id']} (no specific order)")
         
-        # Select and customize scenario template
-        scenario = select_scenario_template(dimensions['query_type'], order, customer, order_products)
-        print(f"  Scenario: {scenario['name']} with policies {scenario['policy_clauses']}")
+        # Select and customize scenario template with policy graph
+        scenario = select_and_customize_scenario(policy_graph, scenario_templates, 
+                                                dimensions['query_type'], order, customer, order_products)
+        print(f"  Scenario: {scenario['name']} (complexity {scenario['complexity_level']})")
+        print(f"  Primary policy: {scenario['primary_policy']}")
+        print(f"  Applicable policies: {scenario['applicable_policies']}")
         print(f"  Expected outcome: {scenario.get('expected_outcome', 'unknown')}")
         
         # Generate email
-        email = generate_customer_email_v2(scenario, dimensions)
+        email = generate_customer_email_v3(scenario, dimensions)
         if not email:
             print(f"  ERROR: Failed to generate email, skipping ticket...")
             continue
         
-        # Generate resolution
-        resolution = generate_resolution_v2(email, scenario, policy, dimensions)
+        # Generate resolution using policy graph
+        resolution = generate_resolution_v3(email, scenario, policy_graph, dimensions)
         if not resolution:
             print(f"  ERROR: Failed to generate resolution, skipping ticket...")
             continue
         
         # Create complete ticket
-        ticket = create_complete_ticket_v2(config, scenario, email, resolution, dimensions)
+        ticket = create_complete_ticket_v3(config, scenario, email, resolution, dimensions)
         new_tickets.append(ticket)
         
         print(f"  ✓ Ticket {ticket['ticket_id']} generated")
@@ -1616,6 +1840,10 @@ def main(config: DatasetConfig):
     print("\nPhase 4: Saving dataset...")
     save_dataset(config, all_tickets, policy, customers, orders, products)
     
+    # Save policy graph for analysis
+    if config.mode == "create":
+        save_policy_graph(policy_graph, config)
+    
     print("\n=== Generation Complete! ===")
     
     # Print summary statistics
@@ -1625,6 +1853,9 @@ def main(config: DatasetConfig):
         complexities = {}
         scenario_names = {}
         expected_outcomes = {}
+        complexity_levels = {}
+        policy_interactions = {}
+        
         for ticket in new_tickets:
             if "_scenario_dimensions" in ticket:
                 qt = ticket["_scenario_dimensions"]["query_type"]
@@ -1635,8 +1866,14 @@ def main(config: DatasetConfig):
             if "_scenario_template" in ticket:
                 name = ticket["_scenario_template"]["name"]
                 outcome = ticket["_scenario_template"].get("expected_outcome", "unknown")
+                complexity_level = ticket["_scenario_template"].get("complexity_level", 1)
                 scenario_names[name] = scenario_names.get(name, 0) + 1
                 expected_outcomes[outcome] = expected_outcomes.get(outcome, 0) + 1
+                complexity_levels[complexity_level] = complexity_levels.get(complexity_level, 0) + 1
+            
+            if "_policy_analysis" in ticket:
+                interaction_type = ticket["_policy_analysis"]["policy_interactions"]
+                policy_interactions[interaction_type] = policy_interactions.get(interaction_type, 0) + 1
         
         if query_types:
             print("\nQuery Type Distribution:")
@@ -1644,9 +1881,19 @@ def main(config: DatasetConfig):
                 print(f"  {qt}: {count} ({count/len(new_tickets)*100:.1f}%)")
         
         if complexities:
-            print("\nComplexity Distribution:")
+            print("\nCustomer Complexity Distribution:")
             for cx, count in sorted(complexities.items()):
                 print(f"  {cx}: {count} ({count/len(new_tickets)*100:.1f}%)")
+        
+        if complexity_levels:
+            print("\nScenario Complexity Levels:")
+            for level, count in sorted(complexity_levels.items()):
+                print(f"  Level {level}: {count} ({count/len(new_tickets)*100:.1f}%)")
+        
+        if policy_interactions:
+            print("\nPolicy Interaction Types:")
+            for interaction, count in sorted(policy_interactions.items()):
+                print(f"  {interaction}: {count} ({count/len(new_tickets)*100:.1f}%)")
         
         if expected_outcomes:
             print("\nExpected Outcome Distribution:")
@@ -1654,9 +1901,19 @@ def main(config: DatasetConfig):
                 print(f"  {outcome}: {count} ({count/len(new_tickets)*100:.1f}%)")
         
         if scenario_names:
-            print("\nScenario Template Distribution:")
+            print("\nTop Scenario Templates:")
             for name, count in sorted(scenario_names.items(), key=lambda x: x[1], reverse=True)[:10]:
                 print(f"  {name}: {count} ({count/len(new_tickets)*100:.1f}%)")
+        
+        # Policy utilization analysis
+        all_policies_used = set()
+        for ticket in new_tickets:
+            if "_policy_analysis" in ticket:
+                all_policies_used.update(ticket["_policy_analysis"].get("applicable_policies", []))
+        
+        if all_policies_used:
+            print(f"\nPolicy Coverage: {len(all_policies_used)} unique policies used")
+            print(f"Policies: {sorted(all_policies_used)}")
     else:
         print("Debug information not included in tickets.")
 
