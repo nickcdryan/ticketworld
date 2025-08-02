@@ -617,55 +617,7 @@
       "message": "Hello,\n\nI recently placed an order, and I just received it today. My email is eve.rodriguez@email.com. I ordered a phone wallet that sticks to the back of your phone and instead, I received some random charging cable that I didn\u2019t order! I'm pretty annoyed because I really needed that wallet for travel. Can you please tell me how to get the correct item sent to me and what to do with this extra cable? I have no use for it.\n\nThanks,\nEve",
       "category": "shipping_error",
       "complexity_level": "simple",
-      "resolution_plan": {
-        "customer_lookup": {
-          "status": "found",
-          "customer_id": "cust_1005",
-          "confidence": "high",
-          "lookup_method": "email_match",
-          "notes": "Customer email found in the customer database."
-        },
-        "policy_references": [
-          "III. General Customer Service Principles",
-          "IV. Communication Guidelines",
-          "VI. Shipping and Order Issues",
-          "VI.A Incorrect Items Shipped"
-        ],
-        "actions": [
-          {
-            "type": "replacement",
-            "amount": 25.0,
-            "reason": "According to policy VI.A, when an incorrect item is shipped, a replacement of the correct item should be shipped to the customer at no additional cost. The cost of the replacement item 'Phone Wallet - Adhesive' is $25.0",
-            "authorization_level": "agent",
-            "timeline": "immediate"
-          },
-          {
-            "type": "followup",
-            "amount": 0.0,
-            "reason": "Per company policy VI.A, to confirm the charging cable received was not part of the original order, verification of order details is needed. A prepaid return label will be sent after confirmation that the charging cable received was not part of the original order.",
-            "authorization_level": "agent",
-            "timeline": "24h"
-          }
-        ],
-        "escalation_required": false,
-        "escalation_reason": null,
-        "response_tone": "apologetic",
-        "priority": "high",
-        "total_resolution_value": 25.0,
-        "policy_compliance": {
-          "within_authorization": true,
-          "follows_procedures": true,
-          "notes": "The resolution is within the agent's authorization limit and follows the company's procedures for handling incorrect items shipped."
-        },
-        "followup_required": {
-          "needed": true,
-          "reason": "Verification needed to determine if the charging cable received was a fulfillment error and was not part of the original order.",
-          "questions": [
-            "Can you please confirm if the charging cable you received was part of your original order or if it was sent in error?",
-            "If it was sent in error, are you willing to return it if we provide a prepaid shipping label?"
-          ]
-        }
-      }
+      
     },
     {
       "ticket_id": "TKT_003",

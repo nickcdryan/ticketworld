@@ -9,45 +9,6 @@ import random
 import datetime
 from typing import Dict, List, Any
 from dataclasses import dataclass
-
-# # You'll need to implement this function with your LLM API details
-# def call_llm(prompt: str, system_instruction: str = None) -> str:
-#     """
-#     Call your LLM API here. Replace with your implementation.
-    
-#     Args:
-#         prompt: The user prompt
-#         system_instruction: Optional system instruction
-    
-#     Returns:
-#         LLM response as string
-#     """
-#     pass
-
-# def call_llm(prompt, system_instruction=None):
-#     """Call the Gemini LLM with a prompt and return the response."""
-#     try:
-#         import google.generativeai as genai
-#         import os
-
-#         # Configure the API
-#         genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-
-#         # Create the model
-#         model = genai.GenerativeModel("gemini-2.0-flash")
-
-#         # Combine system instruction with prompt if provided
-#         if system_instruction:
-#             full_prompt = f"{system_instruction}\n\n{prompt}"
-#         else:
-#             full_prompt = prompt
-
-#         # Generate response
-#         response = model.generate_content(full_prompt)
-#         return response.text
-#     except Exception as e:
-#         print(f"Error calling Gemini API: {str(e)}")
-#         return f"Error: {str(e)}"
     
 
 def call_llm(prompt, system_instruction=None):
@@ -159,6 +120,7 @@ IRRELEVANT SECTIONS TO INCLUDE (add realistic noise):
 - IT security policies
 - Marketing guidelines
 - Vendor relationships
+- DO NOT actually say in the document that these sections are irrelevant, they should appear as if they are relevant to the policy.
 
 Format as a professional policy document with section numbers, clear headers, and specific procedures. Include exact dollar amounts, timeframes, and step-by-step processes that can be referenced and followed.
 """
