@@ -1,67 +1,367 @@
 [
   {
-    "ticket_id": "TK-20250802-8452",
-    "customer_email": "david.lee@example.com",
-    "subject": "Price Difference for SparkPhone Go and NoiseFree Pro Headphones",
-    "body": "Dear David Lee,\n\nThank you for contacting us regarding the price you paid for the SparkPhone Go and NoiseFree Pro Headphones in order ORD-20250524-1002. I understand your disappointment in finding a much lower price offered by a marketplace seller after your purchase on May 24, 2025.\n\nThe SparkPhone Go was purchased for $99.99 and the NoiseFree Pro Headphones for $236.55, totaling $336.54. I understand that finding the same products for a lower price elsewhere can be frustrating. \n\nWhile we strive to offer competitive prices, pricing fluctuations can occur. Unfortunately, our price adjustment policy does not extend to price differences found after this amount of time from marketplace sellers.\n\nWe appreciate your business and understanding.\n\nSincerely,\nCustomer Support",
-    "timestamp": "2025-08-02T11:58:48.609084",
-    "customer_id": "CUST-8765",
-    "order_id": "ORD-20250524-1002",
+    "ticket_id": "TK-20250802-9997",
+    "customer_email": "david.lee@yahoo.com",
+    "subject": "Damaged Galaxy Buds Live",
+    "body": "Dear Customer Support,\n\nI am writing to you because my recent order arrived damaged. The Galaxy Buds Live were damaged in the box when I received them. \n\nI'm not sure what to do next, but I would appreciate it if you could help me resolve this issue.\n\nThanks,\nDavid Lee",
+    "timestamp": "2025-08-02T18:04:09.691953",
+    "customer_id": "CUST-8519",
+    "order_id": "ORD-20250220-1002",
     "resolution_plan": {
-      "order_id": "ORD-20250524-1002",
-      "order_date": "2025-05-24",
+      "order_id": "ORD-20250220-1002",
+      "order_date": "2025-02-20",
       "customer_lookup": {
         "status": "found",
-        "customer_id": "CUST-8765",
+        "customer_id": "CUST-8519",
         "lookup_method": "email_match",
         "notes": "Customer found in database"
       },
       "policy_references": [
-        "POL-PRICE-002"
+        "POL-SHIP-006"
       ],
-      "policy_reasoning": "The customer is requesting a price match after finding a lower price from a marketplace seller. POL-PRICE-002 excludes price matching for marketplace sellers.",
+      "policy_reasoning": "The customer reported a damaged item upon arrival. Since the item is valued under $500, policy POL-SHIP-006 allows for immediate replacement.",
       "actions": [
         {
-          "type": "deny_price_match",
-          "reason": "Price match is denied because the lower price was found on a marketplace seller, which is excluded from our price match policy based on POL-PRICE-002.",
-          "value": 0,
-          "details": "The price difference found by the customer is from a marketplace seller, and POL-PRICE-002 explicitly excludes marketplace sellers from price matching."
+          "type": "send_replacement",
+          "reason": "The Galaxy Buds Live arrived damaged. As per policy POL-SHIP-006, damaged items under $500 are eligible for immediate replacement.",
+          "value": 119.99,
+          "details": "Shipping a replacement Galaxy Buds Live to the customer's address on file."
         }
       ],
       "escalation_required": false,
       "escalation_reason": null,
-      "priority": "low",
-      "total_resolution_value": 0
+      "priority": "medium",
+      "total_resolution_value": 119.99
     },
     "_scenario_dimensions": {
-      "query_type": "pricing_dispute",
-      "information_completeness": "complete",
-      "complexity": "edge_case",
+      "query_type": "shipping_issue",
+      "information_completeness": "minimal_details",
+      "complexity": "straightforward",
       "customer_sentiment": "neutral"
     },
     "_scenario_template": {
-      "scenario_id": "PRICE-003",
-      "name": "price_match_marketplace",
-      "primary_policy": "POL-PRICE-002",
-      "complexity_level": 2,
-      "expected_outcome": "deny"
+      "scenario_id": "SHIP-003",
+      "name": "damaged_high_value",
+      "primary_policy": "POL-SHIP-005",
+      "complexity_level": 3,
+      "expected_outcome": "conditional"
     },
     "_policy_analysis": {
       "all_relevant_policies": [
-        "POL-PRICE-002",
-        "POL-PRICE-001"
+        "POL-SHIP-005",
+        "POL-SHIP-006"
       ],
       "applicable_policies": [
-        "POL-PRICE-002"
+        "POL-SHIP-006"
       ],
       "context_used": {
         "has_receipt": true,
         "customer_tier": "standard",
-        "days_since_purchase": 70,
-        "months_since_purchase": 2.299605781865966,
+        "days_since_purchase": 163,
+        "months_since_purchase": 5.354796320630749,
         "order_status": "delivered",
-        "total_order_value": 336.54,
-        "item_value": 236.55
+        "total_order_value": 119.99,
+        "item_value": 119.99
+      },
+      "policy_interactions": "Multi-hop reasoning required"
+    }
+  },
+  {
+    "ticket_id": "TK-20250802-2222",
+    "customer_email": "susan.omalley@gmail.com",
+    "subject": "Return Request - Echo Dot",
+    "body": "Dear Customer Support,\n\nI am writing to request a return for a product I recently purchased. It was an Echo Dot (5th Gen) that I bought as a holiday purchase. \n\nI'm hoping to return it, if possible.\n\nThank you for your help.\n\nSincerely,\nSusan O'Malley\nsusan.o'malley@gmail.com",
+    "timestamp": "2025-08-02T18:04:13.996595",
+    "customer_id": "CUST-1285",
+    "order_id": "ORD-20250723-1005",
+    "resolution_plan": {
+      "order_id": "ORD-20250723-1005",
+      "order_date": "2025-07-23",
+      "customer_lookup": {
+        "status": "found",
+        "customer_id": "CUST-1285",
+        "lookup_method": "email_match",
+        "notes": "Customer found in database"
+      },
+      "policy_references": [
+        "POL-RETURN-004",
+        "POL-HOLIDAY-001",
+        "POL-RETURN-001",
+        "POL-RETURN-003"
+      ],
+      "policy_reasoning": "The customer is requesting a return for an Echo Dot (5th Gen) purchased within the standard 30-day return window outlined in POL-RETURN-001. While the purchase was not made between November 1st and December 31st, the item is still within the normal 30-day return window so POL-HOLIDAY-001 does not affect this request.",
+      "actions": [
+        {
+          "type": "process_return",
+          "reason": "The customer is within the 30-day return window as per POL-RETURN-001.",
+          "value": 0,
+          "details": "Initiate the return process for the Echo Dot (5th Gen), product ID PROD-2004."
+        },
+        {
+          "type": "issue_refund",
+          "reason": "The customer is eligible for a full refund as the return is within the 30-day return window per POL-RETURN-001.",
+          "value": 47.49,
+          "details": "Issue a refund of $47.49 to the customer's original payment method upon receiving the returned Echo Dot."
+        }
+      ],
+      "escalation_required": false,
+      "escalation_reason": null,
+      "priority": "medium",
+      "total_resolution_value": 47.49
+    },
+    "_scenario_dimensions": {
+      "query_type": "return_request",
+      "information_completeness": "wrong_email",
+      "complexity": "edge_case",
+      "customer_sentiment": "neutral"
+    },
+    "_scenario_template": {
+      "scenario_id": "RETURN-005",
+      "name": "return_holiday_extended",
+      "primary_policy": "POL-HOLIDAY-001",
+      "complexity_level": 3,
+      "expected_outcome": "approve"
+    },
+    "_policy_analysis": {
+      "all_relevant_policies": [
+        "POL-HOLIDAY-001",
+        "POL-RETURN-001",
+        "POL-RETURN-002",
+        "POL-RETURN-003",
+        "POL-RETURN-004"
+      ],
+      "applicable_policies": [
+        "POL-RETURN-004",
+        "POL-HOLIDAY-001",
+        "POL-RETURN-001",
+        "POL-RETURN-003"
+      ],
+      "context_used": {
+        "has_receipt": true,
+        "customer_tier": "standard",
+        "days_since_purchase": 10,
+        "months_since_purchase": 0.328515111695138,
+        "order_status": "delivered",
+        "total_order_value": 47.49,
+        "item_value": 47.49
+      },
+      "policy_interactions": "Multi-hop reasoning required"
+    }
+  },
+  {
+    "ticket_id": "TK-20250802-5458",
+    "customer_email": "david.lee@yahoo.com",
+    "subject": "Inquiry about Order ORD-20250331-1007 - Package marked as Delivered but Not Received",
+    "body": "Dear Customer Support,\n\nI am writing to inquire about order ORD-20250331-1007, which I placed on March 31, 2025. The order includes a Canon EOS Rebel T7, an iPhone 15 Pro Max, and a Legion 5 Pro. The total was $3377.99.\n\nThe tracking information (1Z999AA10123456784) indicates that the package was delivered, but I have not received it. I checked with my neighbors to see if it was accidentally delivered to their homes, but no one has it.\n\nI'm a bit worried about this. Could you please investigate this issue and let me know what steps can be taken to locate my package? I would appreciate it if you could provide me with more details about the delivery date and location that was recorded.\n\nThank you for your time and assistance.\n\nSincerely,\nDavid Lee\ndavid.lee@yahoo.com",
+    "timestamp": "2025-08-02T18:04:18.691355",
+    "customer_id": "CUST-8519",
+    "order_id": "ORD-20250331-1007",
+    "resolution_plan": {
+      "order_id": "ORD-20250331-1007",
+      "order_date": "2025-03-31",
+      "customer_lookup": {
+        "status": "found",
+        "customer_id": "CUST-8519",
+        "lookup_method": "email_match",
+        "notes": "Customer found in database"
+      },
+      "policy_references": [
+        "POL-SHIP-003",
+        "POL-SHIP-002"
+      ],
+      "policy_reasoning": "The customer reports not receiving the package, despite it being marked as delivered. Since the package has not been received, POL-SHIP-002 applies. As per POL-SHIP-003, we must initiate an investigation before sending a replacement.",
+      "actions": [
+        {
+          "type": "initiate_investigation",
+          "reason": "The customer reports not receiving the package. Per POL-SHIP-003, an investigation must be initiated to locate the package.",
+          "value": 0,
+          "details": "Initiating investigation with the carrier to determine the whereabouts of the package. The investigation will take 3 business days."
+        },
+        {
+          "type": "provide_information",
+          "reason": "The customer needs to know what steps are being taken. Per POL-SHIP-002, after the investigation, we will send a replacement.",
+          "value": 0,
+          "details": "Informing the customer that an investigation has been initiated and that a replacement will be sent after the 3 business day investigation period, assuming the package is not located."
+        }
+      ],
+      "escalation_required": false,
+      "escalation_reason": null,
+      "priority": "medium",
+      "total_resolution_value": 0
+    },
+    "_scenario_dimensions": {
+      "query_type": "shipping_issue",
+      "information_completeness": "complete",
+      "complexity": "requires_lookup",
+      "customer_sentiment": "neutral"
+    },
+    "_scenario_template": {
+      "scenario_id": "SHIP-001",
+      "name": "package_not_received",
+      "primary_policy": "POL-SHIP-002",
+      "complexity_level": 2,
+      "expected_outcome": "investigate"
+    },
+    "_policy_analysis": {
+      "all_relevant_policies": [
+        "POL-SHIP-002",
+        "POL-SHIP-003"
+      ],
+      "applicable_policies": [
+        "POL-SHIP-003",
+        "POL-SHIP-002"
+      ],
+      "context_used": {
+        "has_receipt": true,
+        "customer_tier": "standard",
+        "days_since_purchase": 124,
+        "months_since_purchase": 4.073587385019711,
+        "order_status": "delivered",
+        "total_order_value": 3377.99,
+        "item_over_500": true,
+        "item_value": 1599.99
+      },
+      "policy_interactions": "Multi-hop reasoning required"
+    }
+  },
+  {
+    "ticket_id": "TK-20250802-6828",
+    "customer_email": "emily.chen@outlook.com",
+    "subject": "Defective iPhone 15 Pro Received in Order ORD-20250218-1008",
+    "body": "To Whom It May Concern,\n\nI am writing to report a problem with an item I received in order ORD-20250218-1008. I ordered it on February 18, 2025.\n\nThe iPhone 15 Pro Max I received is defective. The screen flickers constantly and sometimes doesn't respond to touch. I'm very frustrated that I received a defective product, especially considering the cost.\n\nI would like to request a return and a full refund or a replacement. Please let me know what steps I need to take to resolve this issue.\n\nThank you for your time and attention to this matter.\n\nSincerely,\nEmily Chen",
+    "timestamp": "2025-08-02T18:04:22.496000",
+    "customer_id": "CUST-3072",
+    "order_id": "ORD-20250218-1008",
+    "resolution_plan": {
+      "order_id": "ORD-20250218-1008",
+      "order_date": "2025-02-18",
+      "customer_lookup": {
+        "status": "found",
+        "customer_id": "CUST-3072",
+        "lookup_method": "email_match",
+        "notes": "Customer found in database"
+      },
+      "policy_references": [
+        "POL-HOLIDAY-001"
+      ],
+      "policy_reasoning": "The customer is reporting a defective iPhone 15 Pro Max. Although the standard return window of 30 days has passed, since it is a defective item the return can be processed.",
+      "actions": [
+        {
+          "type": "request_photo",
+          "reason": "Item is over $500 and reported as damaged, we must request a photo to assess the damage. Per POL-SHIP-005, for damaged items over $500, a photo is required for verification.",
+          "value": 0,
+          "details": "Request customer to provide a photo of the defective iPhone 15 Pro Max."
+        }
+      ],
+      "escalation_required": false,
+      "escalation_reason": null,
+      "priority": "medium",
+      "total_resolution_value": 0
+    },
+    "_scenario_dimensions": {
+      "query_type": "return_request",
+      "information_completeness": "incorrect_info",
+      "complexity": "requires_lookup",
+      "customer_sentiment": "neutral"
+    },
+    "_scenario_template": {
+      "scenario_id": "RETURN-003",
+      "name": "return_defective_item",
+      "primary_policy": "POL-RETURN-004",
+      "complexity_level": 2,
+      "expected_outcome": "approve"
+    },
+    "_policy_analysis": {
+      "all_relevant_policies": [
+        "POL-RETURN-004",
+        "POL-RETURN-001",
+        "POL-RETURN-002",
+        "POL-RETURN-003",
+        "POL-HOLIDAY-001"
+      ],
+      "applicable_policies": [
+        "POL-HOLIDAY-001"
+      ],
+      "context_used": {
+        "has_receipt": true,
+        "customer_tier": "standard",
+        "days_since_purchase": 165,
+        "months_since_purchase": 5.4204993429697765,
+        "order_status": "delivered",
+        "total_order_value": 1388.98,
+        "item_over_500": true,
+        "item_value": 1299.0
+      },
+      "policy_interactions": "Multi-hop reasoning required"
+    }
+  },
+  {
+    "ticket_id": "TK-20250802-3099",
+    "customer_email": "maria.rodriguez@gmail.com",
+    "subject": "Defective iPhone 15 Pro Max - Order ORD-20250515-1001",
+    "body": "Dear Customer Support,\n\nI am writing to complain about a defective iPhone 15 Pro Max that I purchased in order ORD-20250515-1001 on May 15, 2025. I was really hoping to enjoy this phone, but it's been nothing but trouble.\n\nI purchased this during a holiday promotion, and I understood that there was an extended return window for holiday purchases. The iPhone 15 Pro Max is not working correctly. It constantly freezes and restarts, and the camera is producing blurry images. I've tried all the troubleshooting steps I could find online, but nothing seems to fix the problem. \n\nGiven that this was a holiday purchase, I am hoping I can still return it for a full refund or exchange it for a working one. Please let me know what steps I need to take to resolve this issue. I've also included a Fire HD 8 Tablet in my order.\n\nThank you for your time and assistance.\n\nSincerely,\nMaria Rodriguez-Smith",
+    "timestamp": "2025-08-02T18:04:26.849466",
+    "customer_id": "CUST-2947",
+    "order_id": "ORD-20250515-1001",
+    "resolution_plan": {
+      "order_id": "ORD-20250515-1001",
+      "order_date": "2025-05-15",
+      "customer_lookup": {
+        "status": "found",
+        "customer_id": "CUST-2947",
+        "lookup_method": "email_match",
+        "notes": "Customer found in database"
+      },
+      "policy_references": [
+        "POL-HOLIDAY-001"
+      ],
+      "policy_reasoning": "The customer purchased the iPhone outside of the holiday purchase window specified in POL-HOLIDAY-001. Therefore, the standard return policy applies.",
+      "actions": [
+        {
+          "type": "request_photo",
+          "reason": "Per POL-SHIP-005, for damaged items valued over $500, a photo of the damage is required to assess the issue before processing a return or refund.",
+          "value": 0,
+          "details": "Requesting customer to provide a photo of the defective iPhone 15 Pro Max (PROD-2001) to assess the damage."
+        }
+      ],
+      "escalation_required": false,
+      "escalation_reason": null,
+      "priority": "medium",
+      "total_resolution_value": 0
+    },
+    "_scenario_dimensions": {
+      "query_type": "product_defect",
+      "information_completeness": "complete",
+      "complexity": "requires_lookup",
+      "customer_sentiment": "angry"
+    },
+    "_scenario_template": {
+      "scenario_id": "RETURN-005",
+      "name": "return_holiday_extended",
+      "primary_policy": "POL-HOLIDAY-001",
+      "complexity_level": 3,
+      "expected_outcome": "approve"
+    },
+    "_policy_analysis": {
+      "all_relevant_policies": [
+        "POL-HOLIDAY-001",
+        "POL-RETURN-001",
+        "POL-RETURN-002",
+        "POL-RETURN-003",
+        "POL-RETURN-004"
+      ],
+      "applicable_policies": [
+        "POL-HOLIDAY-001"
+      ],
+      "context_used": {
+        "has_receipt": true,
+        "customer_tier": "standard",
+        "days_since_purchase": 79,
+        "months_since_purchase": 2.59526938239159,
+        "order_status": "delivered",
+        "total_order_value": 1388.99,
+        "item_over_500": true,
+        "item_value": 1299.0
       },
       "policy_interactions": "Multi-hop reasoning required"
     }

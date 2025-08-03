@@ -16,6 +16,7 @@ import argparse
 import os
 import sys
 import re
+import networkx as nx  # For graph operations and consistency checking
 
 # Configuration
 @dataclass
@@ -56,110 +57,98 @@ class DatasetConfig:
         """Get full filepath for a given filename"""
         return os.path.join(self.output_dir, filename)
 
-# Enhanced Policy Structure with Interactions
+# Enhanced Policy Structure with LLM-Driven Interactions
 @dataclass
 class PolicyClause:
-    """Represents a single policy clause with interaction metadata"""
+    """Represents a single policy clause parsed from LLM-generated policy document"""
     clause_id: str
     title: str
     rule: str
-    conditions: List[str] = field(default_factory=list)
-    interacts_with: List[str] = field(default_factory=list)
-    modifies: List[str] = field(default_factory=list)
-    modified_by: List[str] = field(default_factory=list)
-    overrides: List[str] = field(default_factory=list)
-    overridden_by: List[str] = field(default_factory=list)
-    requires: List[str] = field(default_factory=list)
-    precedence: int = 5  # Lower numbers have higher precedence
     category: str = ""
+    # These will be populated by LLM analysis
+    interacts_with: List[str] = field(default_factory=list)
+    interaction_reasons: Dict[str, str] = field(default_factory=dict)
+    
+@dataclass
+class PolicyInteraction:
+    """Represents an interaction between two policies discovered by LLM analysis"""
+    policy_a: str
+    policy_b: str
+    interaction_type: str  # "modifies", "overrides", "requires", "conflicts", "complements"
+    reasoning: str
+    scenarios: List[str] = field(default_factory=list)
+    confidence: float = 1.0
 
 class PolicyGraph:
-    """Manages policy clauses and their interactions"""
+    """Manages policy clauses and their LLM-discovered interactions"""
     
     def __init__(self):
         self.clauses: Dict[str, PolicyClause] = {}
-        self.interaction_graph: Dict[str, List[str]] = {}
-    
+        self.interactions: List[PolicyInteraction] = []
+        self.nx_graph: nx.Graph = nx.Graph()  # NetworkX graph for analysis
+        
     def add_clause(self, clause: PolicyClause):
         """Add a policy clause to the graph"""
         self.clauses[clause.clause_id] = clause
+        self.nx_graph.add_node(clause.clause_id, 
+                              title=clause.title, 
+                              category=clause.category)
+    
+    def add_interaction(self, interaction: PolicyInteraction):
+        """Add a policy interaction discovered by LLM analysis"""
+        self.interactions.append(interaction)
         
-        # Build interaction graph
-        all_interactions = (clause.interacts_with + clause.modifies + clause.modified_by + 
-                          clause.overrides + clause.overridden_by + clause.requires)
-        self.interaction_graph[clause.clause_id] = all_interactions
+        # Add to clause's interaction list
+        if interaction.policy_a in self.clauses:
+            self.clauses[interaction.policy_a].interacts_with.append(interaction.policy_b)
+            self.clauses[interaction.policy_a].interaction_reasons[interaction.policy_b] = interaction.reasoning
+            
+        if interaction.policy_b in self.clauses:
+            self.clauses[interaction.policy_b].interacts_with.append(interaction.policy_a)
+            self.clauses[interaction.policy_b].interaction_reasons[interaction.policy_a] = interaction.reasoning
+        
+        # Add edge to NetworkX graph
+        self.nx_graph.add_edge(interaction.policy_a, interaction.policy_b,
+                              interaction_type=interaction.interaction_type,
+                              reasoning=interaction.reasoning,
+                              scenarios=interaction.scenarios)
     
     def get_related_policies(self, clause_id: str, max_hops: int = 3) -> List[str]:
-        """Get all policies related to a given clause within max_hops"""
-        if clause_id not in self.clauses:
+        """Get all policies related to a given clause within max_hops using NetworkX"""
+        if clause_id not in self.nx_graph:
             return []
         
-        visited = set()
-        to_visit = [(clause_id, 0)]
+        # Use NetworkX to find nodes within max_hops
         related = []
-        
-        while to_visit:
-            current_id, hops = to_visit.pop(0)
-            
-            if current_id in visited or hops > max_hops:
-                continue
-                
-            visited.add(current_id)
-            if current_id != clause_id:  # Don't include the starting clause
-                related.append(current_id)
-            
-            # Add connected clauses
-            if current_id in self.interaction_graph:
-                for connected_id in self.interaction_graph[current_id]:
-                    if connected_id not in visited:
-                        to_visit.append((connected_id, hops + 1))
+        for node in self.nx_graph.nodes():
+            if node != clause_id:
+                try:
+                    path_length = nx.shortest_path_length(self.nx_graph, clause_id, node)
+                    if path_length <= max_hops:
+                        related.append(node)
+                except nx.NetworkXNoPath:
+                    # No path exists
+                    continue
         
         return related
     
-    def resolve_conflicts(self, clause_ids: List[str], context: Dict[str, Any]) -> List[str]:
-        """Resolve conflicts between clauses based on precedence and context"""
-        if not clause_ids:
-            return []
-        
-        # Sort by precedence (lower numbers first)
-        sorted_clauses = sorted(clause_ids, key=lambda cid: self.clauses[cid].precedence)
-        
-        active_clauses = []
-        for clause_id in sorted_clauses:
-            clause = self.clauses[clause_id]
-            
-            # Check if this clause overrides any active clauses
-            for active_id in active_clauses[:]:
-                if active_id in clause.overrides:
-                    active_clauses.remove(active_id)
-            
-            # Check if any active clause overrides this one
-            is_overridden = any(clause_id in self.clauses[active_id].overrides 
-                             for active_id in active_clauses)
-            
-            if not is_overridden:
-                # Check if conditions are met
-                if self._check_conditions(clause, context):
-                    active_clauses.append(clause_id)
-        
-        return active_clauses
+    def get_interaction_reasoning(self, policy_a: str, policy_b: str) -> str:
+        """Get the reasoning for why two policies interact"""
+        if policy_a in self.clauses and policy_b in self.clauses[policy_a].interaction_reasons:
+            return self.clauses[policy_a].interaction_reasons[policy_b]
+        return "No direct interaction found"
     
-    def _check_conditions(self, clause: PolicyClause, context: Dict[str, Any]) -> bool:
-        """Check if clause conditions are met given context"""
-        for condition in clause.conditions:
-            if condition == "receipt_required" and not context.get("has_receipt", True):
-                return False
-            elif condition == "within_return_window" and context.get("days_since_purchase", 0) > 30:
-                return False
-            elif condition == "within_price_match_window" and context.get("days_since_purchase", 0) > 14:
-                return False
-            elif condition == "order_not_shipped" and context.get("order_status") in ["shipped", "delivered"]:
-                return False
-            elif condition == "item_over_500" and context.get("item_value", 0) <= 500:
-                return False
-            elif condition == "warranty_period" and context.get("months_since_purchase", 0) > 12:
-                return False
-        return True
+    def validate_graph_consistency(self) -> Dict[str, Any]:
+        """Validate graph consistency and return analysis"""
+        analysis = {
+            "total_nodes": len(self.nx_graph.nodes()),
+            "total_edges": len(self.nx_graph.edges()),
+            "connected_components": list(nx.connected_components(self.nx_graph)),
+            "average_degree": sum(dict(self.nx_graph.degree()).values()) / len(self.nx_graph.nodes()) if self.nx_graph.nodes() else 0,
+            "isolated_nodes": list(nx.isolates(self.nx_graph)),
+            "bridge_edges": list(nx.bridges(self.nx_graph))
+        }
+        return analysis
     
     def generate_policy_text(self) -> str:
         """Generate human-readable policy document (without metadata)"""
@@ -177,218 +166,217 @@ class PolicyGraph:
             
             for clause in sorted(clauses, key=lambda c: c.clause_id):
                 policy_text.append(f"\n[{clause.clause_id}] {clause.title}")
-                policy_text.append(f"Rule: {clause.rule}")
-                if clause.conditions:
-                    policy_text.append(f"Conditions: {', '.join(clause.conditions)}")
+                policy_text.append(f"{clause.rule}")
         
         return "\n".join(policy_text)
 
-def create_policy_graph(config: DatasetConfig) -> PolicyGraph:
-    """Create the complete policy graph with all interactions"""
+def generate_policy_document_with_llm(config: DatasetConfig) -> str:
+    """Generate a natural policy document using LLM for a consumer electronics retailer"""
+    
+    system_prompt = f"""You are creating a comprehensive customer service policy document for {config.company_name}, 
+    a consumer electronics retailer. Create realistic, detailed policies that sound natural and professional.
+    Each policy should have a clear policy code in [POL-XXXX-###] format."""
+    
+    prompt = f"""Generate a comprehensive customer service policy document for {config.company_name}, 
+    a consumer electronics retailer. The document should include the following policy areas with specific policy codes:
+
+REQUIRED POLICY AREAS:
+1. Return Policy - multiple clauses covering different scenarios
+2. Shipping Policy - covering various shipping issues  
+3. Warranty Policy - covering warranty claims and exclusions
+4. Price Match Policy - covering price matching rules
+5. Order Policy - covering order modifications and cancellations
+6. Holiday/Seasonal Policy - covering special conditions
+7. Customer Service Standards - covering response times and escalation
+
+FORMAT REQUIREMENTS:
+- Each policy clause should have a unique code like [POL-RETURN-001], [POL-SHIP-001], etc.
+- Include specific time periods (30 days, 14 days, etc.)
+- Include specific dollar amounts and thresholds where relevant
+- Include clear conditions and exceptions
+- Make policies realistic for a consumer electronics business
+- Write in professional but clear language
+
+POLICY COMPLEXITY:
+- Create 8-10 total policy clauses across all areas
+- Some policies should naturally interact with others (e.g., return window vs holiday extension)
+- Include edge cases and exceptions that would require multiple policies to resolve
+- Make sure some policies complement each other and some might conflict in edge cases
+
+EXAMPLE FORMAT:
+[POL-RETURN-001] Return Window
+All items may be returned within 30 days of delivery date. Returns after 30 days will not be accepted.
+
+[POL-RETURN-002] Restocking Fee
+Opened electronic items are subject to a 15% restocking fee, except when the item is defective.
+
+Generate a complete policy document with this structure. Focus on creating realistic business policies that would actually be used by a consumer electronics retailer."""
+
+    return call_llm(prompt, system_prompt)
+
+def parse_policy_document(policy_text: str) -> List[PolicyClause]:
+    """Parse the LLM-generated policy document into PolicyClause objects"""
+    clauses = []
+    
+    # Find all policy clauses using regex
+    pattern = r'\[([A-Z]+-[A-Z]+-\d+)\]\s*([^\n]+)\n([^[]*?)(?=\[[A-Z]+-[A-Z]+-\d+\]|$)'
+    matches = re.findall(pattern, policy_text, re.DOTALL)
+    
+    for match in matches:
+        clause_id, title, rule = match
+        
+        # Clean up the rule text
+        rule = rule.strip()
+        
+        # Determine category from clause_id
+        category = "Unknown"
+        if "RETURN" in clause_id:
+            category = "Return Policy"
+        elif "SHIP" in clause_id:
+            category = "Shipping Policy"
+        elif "WARRANTY" in clause_id:
+            category = "Warranty Policy"
+        elif "PRICE" in clause_id:
+            category = "Price Match Policy"
+        elif "ORDER" in clause_id:
+            category = "Order Policy"
+        elif "HOLIDAY" in clause_id:
+            category = "Holiday Policy"
+        elif "COMM" in clause_id:
+            category = "Customer Service"
+        
+        clauses.append(PolicyClause(
+            clause_id=clause_id,
+            title=title.strip(),
+            rule=rule,
+            category=category
+        ))
+    
+    return clauses
+
+def analyze_policy_interactions(clauses: List[PolicyClause]) -> List[PolicyInteraction]:
+    """Use LLM to analyze interactions between all policy pairs"""
+    
+    interactions = []
+    total_pairs = len(clauses) * (len(clauses) - 1) // 2
+    processed = 0
+    
+    print(f"  Analyzing {total_pairs} policy pairs for interactions...")
+    
+    for i, policy_a in enumerate(clauses):
+        for j, policy_b in enumerate(clauses[i+1:], i+1):
+            processed += 1
+            if processed % 10 == 0:
+                print(f"    Analyzed {processed}/{total_pairs} pairs...")
+            
+            # Call LLM to analyze this specific pair
+            interaction = analyze_single_policy_pair(policy_a, policy_b)
+            if interaction:
+                interactions.append(interaction)
+    
+    print(f"  ✓ Found {len(interactions)} policy interactions")
+    return interactions
+
+def analyze_single_policy_pair(policy_a: PolicyClause, policy_b: PolicyClause) -> Optional[PolicyInteraction]:
+    """Analyze a single pair of policies to determine if they interact"""
+    
+    system_prompt = """You are a policy analysis expert. Your job is to determine if two customer service policies interact with each other.
+    
+    Policies interact if:
+    - One modifies how the other is applied
+    - One overrides the other in certain situations
+    - One requires the other to be checked first
+    - They conflict in certain scenarios
+    - They complement each other in handling complex cases
+    
+    Consider realistic customer service scenarios where both policies might come into play."""
+    
+    prompt = f"""Analyze these two customer service policies to determine if and how they interact:
+
+POLICY A:
+[{policy_a.clause_id}] {policy_a.title}
+{policy_a.rule}
+
+POLICY B:
+[{policy_b.clause_id}] {policy_b.title}
+{policy_b.rule}
+
+ANALYSIS TASK:
+1. Do these policies interact in any customer service scenarios?
+2. If yes, how do they interact? (modifies, overrides, requires, conflicts, complements)
+3. What specific scenarios would involve both policies?
+4. What is your reasoning?
+
+Think step by step:
+- Consider different customer situations where both policies might apply
+- Look for time periods, dollar amounts, conditions that might overlap
+- Consider edge cases where policies might conflict or complement
+- Think about the order in which policies would need to be applied
+
+Respond in JSON format:
+{{
+    "interacts": true/false,
+    "interaction_type": "modifies/overrides/requires/conflicts/complements/none",
+    "reasoning": "Detailed explanation of why and how they interact",
+    "scenarios": ["scenario 1", "scenario 2", ...],
+    "confidence": 0.0-1.0
+}}
+
+If the policies are completely unrelated (e.g., shipping costs vs warranty exclusions), return "interacts": false."""
+
+    try:
+        response = call_llm(prompt, system_prompt)
+        analysis = safe_json_parse(response, "object")
+        
+        if analysis and analysis.get("interacts", False):
+            return PolicyInteraction(
+                policy_a=policy_a.clause_id,
+                policy_b=policy_b.clause_id,
+                interaction_type=analysis.get("interaction_type", "unknown"),
+                reasoning=analysis.get("reasoning", ""),
+                scenarios=analysis.get("scenarios", []),
+                confidence=analysis.get("confidence", 0.5)
+            )
+    except Exception as e:
+        print(f"    Error analyzing {policy_a.clause_id} vs {policy_b.clause_id}: {e}")
+    
+    return None
+
+def build_policy_graph_with_llm(config: DatasetConfig) -> Tuple[PolicyGraph, str]:
+    """Complete pipeline: Generate policy document, parse it, analyze interactions, build graph"""
+    
+    print("Step 1: Generating policy document with LLM...")
+    policy_text = generate_policy_document_with_llm(config)
+    
+    print("Step 2: Parsing policy document...")
+    clauses = parse_policy_document(policy_text)
+    print(f"  ✓ Parsed {len(clauses)} policy clauses")
+    
+    if not clauses:
+        raise Exception("Failed to parse any policy clauses from generated document")
+    
+    print("Step 3: Analyzing policy interactions...")
+    interactions = analyze_policy_interactions(clauses)
+    
+    print("Step 4: Building policy graph...")
     graph = PolicyGraph()
     
-    # Return Policy Clauses
-    graph.add_clause(PolicyClause(
-        clause_id="POL-RETURN-001",
-        title="Return Window",
-        rule="ALL items: 30-day return window from delivery date. No returns accepted after 30 days for any reason.",
-        conditions=["within_return_window", "receipt_required"],
-        modified_by=["POL-RETURN-004", "POL-HOLIDAY-001"],
-        interacts_with=["POL-RETURN-002", "POL-RETURN-003"],  # Symmetric relationships
-        precedence=3,
-        category="Return Policy"
-    ))
+    # Add all clauses
+    for clause in clauses:
+        graph.add_clause(clause)
     
-    graph.add_clause(PolicyClause(
-        clause_id="POL-RETURN-002",
-        title="Restocking Fee",
-        rule="Opened items: 15% restocking fee applies unless item is defective",
-        conditions=["within_return_window"],
-        overridden_by=["POL-RETURN-004"],
-        modified_by=["POL-RETURN-003"],
-        interacts_with=["POL-RETURN-001", "POL-RETURN-003"],  # Symmetric with 001 & 003
-        precedence=4,
-        category="Return Policy"
-    ))
+    # Add all interactions
+    for interaction in interactions:
+        graph.add_interaction(interaction)
     
-    graph.add_clause(PolicyClause(
-        clause_id="POL-RETURN-003",
-        title="Unopened Items",
-        rule="Unopened items: Full refund, no restocking fee",
-        conditions=["within_return_window"],
-        modifies=["POL-RETURN-002"],
-        interacts_with=["POL-RETURN-001", "POL-RETURN-002"],  # Symmetric with 001 & 002
-        precedence=3,
-        category="Return Policy"
-    ))
+    print("Step 5: Validating graph consistency...")
+    consistency = graph.validate_graph_consistency()
+    print(f"  ✓ Graph has {consistency['total_nodes']} nodes, {consistency['total_edges']} edges")
+    print(f"  ✓ Average degree: {consistency['average_degree']:.1f}")
+    if consistency['isolated_nodes']:
+        print(f"  ⚠️  {len(consistency['isolated_nodes'])} isolated policies: {consistency['isolated_nodes']}")
     
-    graph.add_clause(PolicyClause(
-        clause_id="POL-RETURN-004",
-        title="Defective Items",
-        rule="Defective items: Full refund, no restocking fee regardless of opened status",
-        conditions=["within_return_window"],
-        overrides=["POL-RETURN-002"],
-        modifies=["POL-RETURN-001"],
-        precedence=1,  # Highest precedence
-        category="Return Policy"
-    ))
-    
-    # Shipping Policy Clauses
-    graph.add_clause(PolicyClause(
-        clause_id="POL-SHIP-001",
-        title="Shipping Costs",
-        rule="Standard shipping (5-7 days): Free on orders over $50, otherwise $9.99",
-        precedence=5,
-        category="Shipping Policy"
-    ))
-    
-    graph.add_clause(PolicyClause(
-        clause_id="POL-SHIP-002",
-        title="Package Not Received",
-        rule="Package not received: Replacement sent after carrier investigation (3 business days)",
-        requires=["POL-SHIP-003"],
-        precedence=4,
-        category="Shipping Policy"
-    ))
-    
-    graph.add_clause(PolicyClause(
-        clause_id="POL-SHIP-003",
-        title="Investigation Required",
-        rule="Investigation period: 3 business days required before replacement for lost packages",
-        precedence=3,
-        category="Shipping Policy"
-    ))
-    
-    graph.add_clause(PolicyClause(
-        clause_id="POL-SHIP-004",
-        title="Wrong Item Shipped",
-        rule="Wrong item shipped: Free return label provided, correct item sent immediately",
-        precedence=2,
-        category="Shipping Policy"
-    ))
-    
-    graph.add_clause(PolicyClause(
-        clause_id="POL-SHIP-005",
-        title="Damage Claims High Value",
-        rule="Damaged items over $500: Photo required before replacement approved",
-        conditions=["item_over_500"],
-        modifies=["POL-SHIP-006"],
-        precedence=2,
-        category="Shipping Policy"
-    ))
-    
-    graph.add_clause(PolicyClause(
-        clause_id="POL-SHIP-006",
-        title="Damage Claims Standard",
-        rule="Damaged items under $500: Immediate replacement authorized",
-        modified_by=["POL-SHIP-005"],
-        precedence=4,
-        category="Shipping Policy"
-    ))
-    
-    # Warranty Policy Clauses
-    graph.add_clause(PolicyClause(
-        clause_id="POL-WARRANTY-001",
-        title="Warranty Period",
-        rule="Manufacturer warranty: 1 year from purchase date. No warranty service after 1 year",
-        conditions=["warranty_period"],
-        interacts_with=["POL-WARRANTY-002", "POL-WARRANTY-003"],
-        precedence=3,
-        category="Warranty Policy"
-    ))
-    
-    graph.add_clause(PolicyClause(
-        clause_id="POL-WARRANTY-002",
-        title="Manufacturing Defects",
-        rule="Defects covered: Manufacturing defects only",
-        conditions=["warranty_period"],
-        interacts_with=["POL-WARRANTY-001", "POL-WARRANTY-003"],  # Symmetric relationships
-        overridden_by=["POL-WARRANTY-003"],  # Symmetric with overrides
-        precedence=3,
-        category="Warranty Policy"
-    ))
-    
-    graph.add_clause(PolicyClause(
-        clause_id="POL-WARRANTY-003",
-        title="Warranty Exclusions",
-        rule="Not covered: Physical damage, water damage, normal wear",
-        conditions=["warranty_period"],
-        interacts_with=["POL-WARRANTY-001", "POL-WARRANTY-002"],  # Symmetric relationships
-        overrides=["POL-WARRANTY-002"],
-        precedence=2,
-        category="Warranty Policy"
-    ))
-    
-    # Price Match Policy Clauses
-    graph.add_clause(PolicyClause(
-        clause_id="POL-PRICE-001",
-        title="Price Match Window",
-        rule="Authorized retailers only: Price matched within 14 days of purchase. No price match after 14 days",
-        conditions=["within_price_match_window"],
-        interacts_with=["POL-PRICE-002"],
-        modified_by=["POL-PRICE-002"],  # Symmetric with modifies
-        precedence=3,
-        category="Price Match Policy"
-    ))
-    
-    graph.add_clause(PolicyClause(
-        clause_id="POL-PRICE-002",
-        title="Price Match Exclusions",
-        rule="Exclusions: Marketplace sellers, clearance items, bundles",
-        interacts_with=["POL-PRICE-001"],  # Symmetric relationship
-        modifies=["POL-PRICE-001"],
-        precedence=2,
-        category="Price Match Policy"
-    ))
-    
-    # Order Policy Clauses
-    graph.add_clause(PolicyClause(
-        clause_id="POL-ORDER-001",
-        title="Order Modification Window",
-        rule="Changes allowed: Within 2 hours of order placement. After 2 hours: Order cannot be modified",
-        conditions=["order_not_shipped"],
-        precedence=3,
-        category="Order Policy"
-    ))
-    
-    # Holiday Policy (affects other policies)
-    graph.add_clause(PolicyClause(
-        clause_id="POL-HOLIDAY-001",
-        title="Holiday Extension",
-        rule="Holiday purchases: Return window extended to 45 days for purchases made November 1 - December 31",
-        modifies=["POL-RETURN-001"],
-        precedence=2,
-        category="Special Conditions"
-    ))
-    
-    # Communication Policy
-    graph.add_clause(PolicyClause(
-        clause_id="POL-COMM-001",
-        title="Response Time",
-        rule="Response time: Within 24 hours",
-        precedence=5,
-        category="Customer Service Standards"
-    ))
-    
-    graph.add_clause(PolicyClause(
-        clause_id="POL-COMM-002",
-        title="Escalation",
-        rule="Escalation: Available for orders over $1000",
-        conditions=["item_over_500"],  # Using similar condition
-        precedence=4,
-        category="Customer Service Standards"
-    ))
-    
-    # Product Information Policy
-    graph.add_clause(PolicyClause(
-        clause_id="POL-INFO-001",
-        title="Product Information Requests",
-        rule="Product availability, specifications, and pricing information provided upon request. Stock status subject to real-time availability.",
-        precedence=5,
-        category="Product Information"
-    ))
-    
-    return graph
+    return graph, policy_text
 
 # Enhanced Scenario Templates with Policy Graph Integration
 @dataclass
@@ -403,8 +391,6 @@ class ScenarioTemplate:
     complexity_level: int = 1  # 1=simple, 2=moderate, 3=complex
     customer_situation: Dict[str, Any] = field(default_factory=dict)
     email_patterns: Dict[str, Any] = field(default_factory=dict)
-    all_relevant_policies: List[str] = field(default_factory=list)  # Pre-validated policy interactions
-
 
 def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
     """Create scenario templates organized by query type"""
@@ -432,7 +418,7 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                     "might_omit": ["order_number"],
                     "tone_modifier": "disappointed"
                 }
-            ),
+                         ),
             ScenarioTemplate(
                 scenario_id="RETURN-002",
                 name="return_opened_item",
@@ -444,7 +430,7 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                     "item_condition": "opened"
                 },
                 expected_outcome="approve_with_fee",
-                complexity_level=2,
+                complexity_level=2,  # Involves restocking fee calculation
                 customer_situation={
                     "customer_expectation": "full_refund",
                     "complication": "item_opened"
@@ -460,14 +446,13 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="return_defective_item",
                 description="Customer received defective item",
                 primary_policy="POL-RETURN-004",
-                all_relevant_policies=["POL-WARRANTY-001", "POL-RETURN-004", "POL-WARRANTY-002", "POL-SHIP-006"],
                 context_requirements={
                     "days_since_purchase": (1, 20),
                     "has_receipt": True,
                     "item_condition": "defective"
                 },
                 expected_outcome="approve",
-                complexity_level=2,
+                complexity_level=2,  # Defective override restocking fee
                 customer_situation={
                     "customer_expectation": "full_refund_no_fee",
                     "complication": "item_defective"
@@ -505,15 +490,14 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="return_holiday_extended",
                 description="Customer returning holiday purchase within extended window",
                 primary_policy="POL-HOLIDAY-001",
-                all_relevant_policies=["POL-HOLIDAY-001", "POL-RETURN-003"],
                 context_requirements={
                     "days_since_purchase": (35, 44),
-                    "purchase_month": (11, 12),
+                    "purchase_month": (11, 12),  # Nov-Dec
                     "has_receipt": True,
                     "item_condition": "unopened"
                 },
                 expected_outcome="approve",
-                complexity_level=3,
+                complexity_level=3,  # Holiday policy modifies standard return policy
                 customer_situation={
                     "customer_expectation": "full_refund",
                     "complication": "holiday_extension"
@@ -537,7 +521,7 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                     "item_value": (50, 1000)
                 },
                 expected_outcome="investigate",
-                complexity_level=2,
+                complexity_level=2,  # Requires investigation period
                 customer_situation={
                     "customer_expectation": "replacement_or_refund",
                     "complication": "shows_delivered"
@@ -553,7 +537,6 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="wrong_item_received",
                 description="Customer received different product than ordered",
                 primary_policy="POL-SHIP-004",
-                all_relevant_policies=["POL-RETURN-001", "POL-RETURN-004", "POL-SHIP-004"],
                 context_requirements={
                     "days_since_delivery": (1, 3),
                     "item_value": (20, 800)
@@ -575,13 +558,12 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="damaged_high_value",
                 description="High-value item arrived damaged",
                 primary_policy="POL-SHIP-005",
-                all_relevant_policies=["POL-RETURN-001", "POL-COMM-002", "POL-RETURN-004", "POL-SHIP-005"],
                 context_requirements={
                     "days_since_delivery": (1, 2),
                     "item_value": (501, 2000)
                 },
                 expected_outcome="conditional",
-                complexity_level=3,
+                complexity_level=3,  # Photo requirement for high value
                 customer_situation={
                     "customer_expectation": "replacement",
                     "complication": "high_value_damage"
@@ -597,7 +579,6 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="damaged_standard_value",
                 description="Standard-value item arrived damaged",
                 primary_policy="POL-SHIP-006",
-                all_relevant_policies=["POL-RETURN-001", "POL-COMM-001", "POL-RETURN-004", "POL-SHIP-006"],
                 context_requirements={
                     "days_since_delivery": (1, 3),
                     "item_value": (10, 500)
@@ -621,7 +602,6 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="warranty_claim_valid",
                 description="Product failed within warranty period",
                 primary_policy="POL-WARRANTY-002",
-                all_relevant_policies=["POL-RETURN-004", "POL-WARRANTY-002"],
                 context_requirements={
                     "months_since_purchase": (2, 11),
                     "damage_type": "manufacturing"
@@ -643,13 +623,12 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="water_damage_claim",
                 description="Product damaged by water",
                 primary_policy="POL-WARRANTY-003",
-                all_relevant_policies=["POL-RETURN-001", "POL-SHIP-005", "POL-WARRANTY-003", "POL-SHIP-006"],
                 context_requirements={
                     "months_since_purchase": (1, 8),
                     "damage_type": "water"
                 },
                 expected_outcome="deny",
-                complexity_level=2,
+                complexity_level=2,  # Warranty exclusion
                 customer_situation={
                     "customer_expectation": "warranty_replacement",
                     "complication": "water_damage"
@@ -665,7 +644,6 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="expired_warranty",
                 description="Product issue after warranty expired",
                 primary_policy="POL-WARRANTY-001",
-                all_relevant_policies=["POL-COMM-001", "POL-WARRANTY-001"],
                 context_requirements={
                     "months_since_purchase": (13, 18),
                     "damage_type": "manufacturing"
@@ -689,13 +667,12 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="price_match_valid",
                 description="Customer found lower price at authorized retailer",
                 primary_policy="POL-PRICE-001",
-                all_relevant_policies=["POL-RETURN-001", "POL-PRICE-001"],
                 context_requirements={
                     "days_since_purchase": (1, 14),
                     "competitor_type": "authorized"
                 },
                 expected_outcome="approve",
-                complexity_level=2,
+                complexity_level=2,  # Need to verify retailer
                 customer_situation={
                     "customer_expectation": "price_difference_refunded",
                     "complication": "competitor_verification"
@@ -711,7 +688,6 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="price_match_too_late",
                 description="Price match request after 14-day window",
                 primary_policy="POL-PRICE-001",
-                all_relevant_policies=["POL-PRICE-001", "POL-HOLIDAY-001"],
                 context_requirements={
                     "days_since_purchase": (20, 30),
                     "competitor_type": "authorized"
@@ -733,13 +709,12 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="price_match_marketplace",
                 description="Customer found lower price at marketplace seller",
                 primary_policy="POL-PRICE-002",
-                all_relevant_policies=["POL-RETURN-001", "POL-PRICE-002"],
                 context_requirements={
                     "days_since_purchase": (1, 10),
                     "competitor_type": "marketplace"
                 },
                 expected_outcome="deny",
-                complexity_level=2,
+                complexity_level=2,  # Policy exclusion
                 customer_situation={
                     "customer_expectation": "price_difference_refunded",
                     "complication": "marketplace_exclusion"
@@ -757,7 +732,6 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="cancel_shipped_order",
                 description="Customer wants to cancel already shipped order",
                 primary_policy="POL-ORDER-001",
-                all_relevant_policies=["POL-RETURN-001", "POL-ORDER-001"],
                 context_requirements={
                     "days_since_order": (3, 5),
                     "order_status": "shipped"
@@ -779,7 +753,6 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="modify_processing_order",
                 description="Customer wants to modify an order in processing",
                 primary_policy="POL-ORDER-001",
-                all_relevant_policies=["POL-COMM-001", "POL-ORDER-001"],
                 context_requirements={
                     "hours_since_order": (3, 24),
                     "order_status": "processing"
@@ -803,7 +776,6 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="product_availability",
                 description="Customer asking about product availability",
                 primary_policy="POL-COMM-001",
-                all_relevant_policies=["POL-COMM-001", "POL-INFO-001"],
                 context_requirements={},
                 expected_outcome="information",
                 complexity_level=1,
@@ -816,210 +788,11 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                     "might_omit": ["specific_model"],
                     "tone_modifier": "curious"
                 }
-            ),
-            ScenarioTemplate(
-                scenario_id="INFO-001",
-                name="product_info_request",
-                description="Customer requesting product specifications, pricing, or stock status",
-                primary_policy="POL-INFO-001",
-                all_relevant_policies=["POL-COMM-001", "POL-INFO-001"],
-                context_requirements={},
-                expected_outcome="information",
-                complexity_level=1,
-                customer_situation={
-                    "customer_expectation": "product_details",
-                    "complication": "none"
-                },
-                email_patterns={
-                    "should_mention": ["product_name_or_category", "specific_questions"],
-                    "might_omit": ["order_details"],
-                    "tone_modifier": "inquiring"
-                }
             )
         ]
     }
     
     return templates
-
-def validate_scenario_templates(scenario_templates: Dict[str, List[ScenarioTemplate]], 
-                               policy_graph: PolicyGraph) -> Dict[str, List[ScenarioTemplate]]:
-    """Validate and enhance scenario templates by checking against policy groups"""
-    
-    print("\n=== Validating Scenario Templates Against Policy Groups ===")
-    
-    # Define policy groups for validation
-    policy_groups = {
-        "Return Policies": ["POL-RETURN-001", "POL-RETURN-002", "POL-RETURN-003", "POL-RETURN-004"],
-        "Shipping Policies": ["POL-SHIP-001", "POL-SHIP-002", "POL-SHIP-003", "POL-SHIP-004", "POL-SHIP-005", "POL-SHIP-006"],
-        "Warranty Policies": ["POL-WARRANTY-001", "POL-WARRANTY-002", "POL-WARRANTY-003"],
-        "Price Match Policies": ["POL-PRICE-001", "POL-PRICE-002"],
-        "Order Policies": ["POL-ORDER-001"],
-        "Special Conditions": ["POL-HOLIDAY-001"],
-        "Service Standards": ["POL-COMM-001", "POL-COMM-002"],
-        "Information Policies": ["POL-INFO-001"]
-    }
-    
-    # Track validation results
-    validation_results = {}
-    
-    # Process each scenario template
-    for query_type, templates in scenario_templates.items():
-        for template in templates:
-            print(f"\nValidating: {template.scenario_id} - {template.name}")
-            
-            # Collect all relevant policies for this scenario
-            all_relevant_policies = [template.primary_policy]
-            interaction_notes = {}
-            
-            # Check each policy group
-            for group_name, group_policies in policy_groups.items():
-                # Skip if primary policy is already in this group
-                if template.primary_policy in group_policies:
-                    print(f"  ✓ {group_name}: Primary policy in group")
-                    continue
-                
-                # Check if any policies in this group apply
-                group_result = check_policy_group_relevance(
-                    template, group_name, group_policies, policy_graph
-                )
-                
-                if group_result.get("applies", False):
-                    relevant_policies = group_result.get("relevant_policies", [])
-                    reason = group_result.get("reason", "")
-                    
-                    print(f"  ✓ {group_name}: {', '.join(relevant_policies)}")
-                    print(f"    Reason: {reason}")
-                    
-                    all_relevant_policies.extend(relevant_policies)
-                    for policy in relevant_policies:
-                        interaction_notes[policy] = reason
-                else:
-                    print(f"  - {group_name}: Not applicable")
-            
-            # Update template with discovered interactions
-            validation_results[template.scenario_id] = {
-                "original_primary": template.primary_policy,
-                "all_relevant_policies": list(set(all_relevant_policies)),  # Remove duplicates
-                "interaction_notes": interaction_notes,
-                "validation_status": "validated"
-            }
-            
-            # Update the template's internal tracking (for generation use)
-            if hasattr(template, '_all_relevant_policies'):
-                template._all_relevant_policies = list(set(all_relevant_policies))
-            
-            print(f"  Total relevant policies: {len(set(all_relevant_policies))}")
-    
-    # Save validation results
-    save_validation_results(validation_results)
-    
-    return scenario_templates
-
-def check_policy_group_relevance(template: ScenarioTemplate, group_name: str, 
-                                group_policies: List[str], policy_graph: PolicyGraph) -> Dict:
-    """Check if any policies in a group are relevant to a scenario"""
-    
-    # Build context description
-    context_parts = []
-    if template.context_requirements:
-        for key, value in template.context_requirements.items():
-            if isinstance(value, tuple):
-                context_parts.append(f"{key}: {value[0]}-{value[1]}")
-            else:
-                context_parts.append(f"{key}: {value}")
-    
-    context_description = ", ".join(context_parts) if context_parts else "No specific context requirements"
-    
-    # Get policy details for the group
-    policy_details = []
-    for policy_id in group_policies:
-        if policy_id in policy_graph.clauses:
-            clause = policy_graph.clauses[policy_id]
-            policy_details.append(f"- [{policy_id}] {clause.title}: {clause.rule}")
-    
-    policy_list = "\n".join(policy_details)
-    
-    # Create focused prompt
-    system_prompt = """You are a customer service policy expert. Your job is to identify ONLY obvious, 
-    direct policy interactions - not theoretical or edge cases."""
-    
-    prompt = f"""Given this customer service scenario:
-
-SCENARIO: {template.description}
-CONTEXT: {context_description}
-EXPECTED OUTCOME: {template.expected_outcome}
-PRIMARY POLICY: {template.primary_policy}
-
-Looking ONLY at these {group_name}:
-{policy_list}
-
-Do any of these policies OBVIOUSLY apply to this scenario in a way that would affect the resolution?
-
-Consider only:
-1. Clear, direct interactions that a customer service rep would immediately recognize
-2. Policies that would change or add to the resolution actions
-3. Conditions that are explicitly met by the scenario context
-
-Do NOT consider:
-- Theoretical edge cases
-- Indirect connections through other policies
-- General policies that apply to everything (unless they add specific actions)
-
-Respond in JSON format:
-{{
-    "applies": true/false,
-    "relevant_policies": ["POL-XXX-###", ...],  // Only policies that OBVIOUSLY apply
-    "reason": "Brief explanation of why these policies clearly apply to this specific scenario"
-}}"""
-    
-    try:
-        response = call_llm(prompt, system_prompt)
-        result = safe_json_parse(response, "object")
-        
-        # Validate the response
-        if result and isinstance(result, dict):
-            # Ensure we only include policies that actually exist
-            if "relevant_policies" in result:
-                result["relevant_policies"] = [
-                    p for p in result["relevant_policies"] 
-                    if p in group_policies
-                ]
-            return result
-        else:
-            return {"applies": False, "relevant_policies": [], "reason": "Failed to parse response"}
-            
-    except Exception as e:
-        print(f"    Error checking {group_name}: {e}")
-        return {"applies": False, "relevant_policies": [], "reason": f"Error: {str(e)}"}
-
-def save_validation_results(results: Dict):
-    """Save validation results for analysis"""
-    import os
-    
-    output_path = os.path.join("./assets", "scenario_validation_results.json")
-    
-    # Add metadata
-    output = {
-        "metadata": {
-            "validated_at": datetime.datetime.now().isoformat(),
-            "total_scenarios": len(results),
-            "description": "Validation results showing which policies interact with each scenario"
-        },
-        "validation_results": results,
-        "summary": {
-            "scenarios_with_single_policy": sum(1 for r in results.values() if len(r["all_relevant_policies"]) == 1),
-            "scenarios_with_multiple_policies": sum(1 for r in results.values() if len(r["all_relevant_policies"]) > 1),
-            "average_policies_per_scenario": sum(len(r["all_relevant_policies"]) for r in results.values()) / len(results) if results else 0
-        }
-    }
-    
-    try:
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        with open(output_path, "w") as f:
-            json.dump(output, f, indent=2)
-        print(f"\nValidation results saved to: {output_path}")
-    except Exception as e:
-        print(f"Warning: Could not save validation results: {e}")
 
 # Scenario dimension probabilities for coverage
 SCENARIO_DIMENSIONS = {
@@ -1161,9 +934,15 @@ def weighted_choice(choices: Dict[str, float]) -> str:
     return random.choices(items, weights=weights)[0]
 
 
-def generate_company_policy_from_graph(config: DatasetConfig, policy_graph: PolicyGraph) -> str:
-    """Generate policy document from policy graph (without metadata for ML training)."""
-    return policy_graph.generate_policy_text()
+def check_dependencies():
+    """Check that required dependencies are installed"""
+    try:
+        import networkx as nx
+        return True
+    except ImportError:
+        print("ERROR: NetworkX is required but not installed.")
+        print("Please install it with: pip install networkx")
+        return False
 
 
 def generate_product_catalog(config: DatasetConfig) -> List[Dict]:
@@ -1348,9 +1127,9 @@ def generate_orders(config: DatasetConfig, customers: List[Dict], products: List
     return orders
 
 
-def select_and_customize_scenario(policy_graph: PolicyGraph, scenario_templates: Dict[str, List[ScenarioTemplate]], 
-                                 query_type: str, order: Dict, customer: Dict, products: List[Dict]) -> Dict:
-    """Select and customize a scenario template with pre-validated policy interactions."""
+def select_and_customize_scenario_v2(policy_graph: PolicyGraph, scenario_templates: Dict[str, List[ScenarioTemplate]], 
+                                   query_type: str, order: Dict, customer: Dict, products: List[Dict]) -> Dict:
+    """Select and customize a scenario template with LLM-based policy graph integration."""
     
     # Get templates for this query type
     templates = scenario_templates.get(query_type, [])
@@ -1364,24 +1143,49 @@ def select_and_customize_scenario(policy_graph: PolicyGraph, scenario_templates:
     # Calculate order context
     context = build_order_context(order, customer, products)
     
-    # Use pre-validated policies from template if available
-    if template.all_relevant_policies:
-        all_relevant_policies = template.all_relevant_policies
-    else:
-        # Fallback to just primary policy
-        all_relevant_policies = [template.primary_policy]
+    # Get all related policies using the new policy graph
+    primary_policy = template.primary_policy
     
-    # Filter policies based on context
-    applicable_policies = policy_graph.resolve_conflicts(all_relevant_policies, context)
+    # Find if the primary policy exists in our generated policies
+    available_policies = list(policy_graph.clauses.keys())
+    if primary_policy not in available_policies:
+        # If exact primary policy doesn't exist, find the closest match by category
+        template_category = ""
+        if "RETURN" in primary_policy:
+            template_category = "Return Policy"
+        elif "SHIP" in primary_policy:
+            template_category = "Shipping Policy"
+        elif "WARRANTY" in primary_policy:
+            template_category = "Warranty Policy"
+        elif "PRICE" in primary_policy:
+            template_category = "Price Match Policy"
+        elif "ORDER" in primary_policy:
+            template_category = "Order Policy"
+        
+        # Find first policy in that category
+        for policy_id, clause in policy_graph.clauses.items():
+            if clause.category == template_category:
+                primary_policy = policy_id
+                break
+        else:
+            # If no match found, use first available policy
+            primary_policy = available_policies[0] if available_policies else "POL-UNKNOWN-001"
+    
+    # Get related policies using NetworkX graph traversal
+    related_policies = policy_graph.get_related_policies(primary_policy, max_hops=2)
+    all_relevant_policies = [primary_policy] + related_policies
+    
+    # For now, use all relevant policies as applicable (we'll let LLM figure out conflicts)
+    applicable_policies = all_relevant_policies
     
     # Customize scenario based on actual order data and policy interactions
     scenario = {
         "scenario_id": template.scenario_id,
         "name": template.name,
         "description": template.description,
-        "primary_policy": template.primary_policy,
+        "primary_policy": primary_policy,
         "all_relevant_policies": all_relevant_policies,  # For generation use
-        "applicable_policies": applicable_policies,      # After conflict resolution
+        "applicable_policies": applicable_policies,      # All related policies
         "expected_outcome": template.expected_outcome,
         "complexity_level": template.complexity_level,
         "query_type": query_type,
@@ -1543,7 +1347,7 @@ IMPORTANT: Use ONLY the information provided above. Do not invent order numbers,
     return email
 
 
-def generate_resolution_v3(email: Dict, scenario: Dict, policy_graph: PolicyGraph, dimensions: Dict[str, str]) -> Dict:
+def generate_resolution_v4(email: Dict, scenario: Dict, policy_graph: PolicyGraph, dimensions: Dict[str, str]) -> Dict:
     """Generate a resolution plan FROM a customer service representative.
     
     This simulates what happens AFTER receiving the customer's email:
@@ -1562,7 +1366,7 @@ def generate_resolution_v3(email: Dict, scenario: Dict, policy_graph: PolicyGrap
     products = scenario.get("products", [])
     context = scenario.get("context", {})
     
-    # Get applicable policies from the scenario (already resolved by policy graph)
+    # Get applicable policies from the scenario (discovered by LLM analysis)
     applicable_policies = scenario.get("applicable_policies", [scenario.get("primary_policy")])
     
     # Build policy text for these specific policies
@@ -1571,10 +1375,20 @@ def generate_resolution_v3(email: Dict, scenario: Dict, policy_graph: PolicyGrap
         if policy_id in policy_graph.clauses:
             clause = policy_graph.clauses[policy_id]
             policy_text_sections.append(f"[{policy_id}] {clause.title}\nRule: {clause.rule}")
-            if clause.conditions:
-                policy_text_sections.append(f"Conditions: {', '.join(clause.conditions)}")
+    
+    # Add policy interaction insights discovered by LLM
+    interaction_insights = []
+    primary_policy = scenario.get("primary_policy")
+    if primary_policy:
+        for other_policy in applicable_policies:
+            if other_policy != primary_policy:
+                reasoning = policy_graph.get_interaction_reasoning(primary_policy, other_policy)
+                if reasoning != "No direct interaction found":
+                    interaction_insights.append(f"Interaction between {primary_policy} and {other_policy}: {reasoning}")
     
     relevant_policy_text = "\n\n".join(policy_text_sections)
+    if interaction_insights:
+        relevant_policy_text += "\n\nPOLICY INTERACTIONS:\n" + "\n".join(interaction_insights)
     
     # Build order information section with product values
     product_values = {}
@@ -1866,53 +1680,61 @@ def save_policy_graph(policy_graph: PolicyGraph, config: DatasetConfig):
             "title": clause.title,
             "rule": clause.rule,
             "category": clause.category,
-            "precedence": clause.precedence,
-            "conditions": clause.conditions,
             "interactions": {
                 "interacts_with": clause.interacts_with,
-                "modifies": clause.modifies,
-                "modified_by": clause.modified_by,
-                "overrides": clause.overrides,
-                "overridden_by": clause.overridden_by,
-                "requires": clause.requires
+                "interaction_reasons": clause.interaction_reasons
             },
-            "total_connections": len(clause.interacts_with + clause.modifies + clause.modified_by + 
-                                   clause.overrides + clause.overridden_by + clause.requires)
+            "total_connections": len(clause.interacts_with)
         }
     
-    # Generate interaction summary
+    # Serialize discovered interactions with reasoning
+    graph_data["discovered_interactions"] = []
+    for interaction in policy_graph.interactions:
+        graph_data["discovered_interactions"].append({
+            "policy_a": interaction.policy_a,
+            "policy_b": interaction.policy_b,
+            "interaction_type": interaction.interaction_type,
+            "reasoning": interaction.reasoning,
+            "scenarios": interaction.scenarios,
+            "confidence": interaction.confidence
+        })
+    
+    # Generate interaction summary using NetworkX
     for clause_id in policy_graph.clauses.keys():
         related = policy_graph.get_related_policies(clause_id, max_hops=3)
+        direct_connections = len(policy_graph.clauses[clause_id].interacts_with)
         graph_data["interaction_summary"][clause_id] = {
-            "direct_connections": len(policy_graph.interaction_graph.get(clause_id, [])),
+            "direct_connections": direct_connections,
             "reachable_within_3_hops": len(related),
             "related_policies": related[:5]  # Top 5 for readability
         }
     
     # Complexity analysis
-    precedence_groups = {}
     category_counts = {}
+    interaction_types = {}
+    
     for clause in policy_graph.clauses.values():
-        # Group by precedence
-        prec = clause.precedence
-        if prec not in precedence_groups:
-            precedence_groups[prec] = []
-        precedence_groups[prec].append(clause.clause_id)
-        
         # Count by category
         cat = clause.category
         category_counts[cat] = category_counts.get(cat, 0) + 1
     
+    # Count interaction types
+    for interaction in policy_graph.interactions:
+        itype = interaction.interaction_type
+        interaction_types[itype] = interaction_types.get(itype, 0) + 1
+    
     graph_data["complexity_analysis"] = {
-        "precedence_groups": precedence_groups,
         "category_distribution": category_counts,
-        "total_unique_interactions": len(set().union(*[
-            clause.interacts_with + clause.modifies + clause.modified_by + 
-            clause.overrides + clause.overridden_by + clause.requires
-            for clause in policy_graph.clauses.values()
-        ])),
-        "max_precedence": max(c.precedence for c in policy_graph.clauses.values()),
-        "min_precedence": min(c.precedence for c in policy_graph.clauses.values())
+        "interaction_types": interaction_types,
+        "total_interactions": len(policy_graph.interactions),
+        "average_interactions_per_policy": len(policy_graph.interactions) / len(policy_graph.clauses) if policy_graph.clauses else 0,
+        "networkx_analysis": {
+            "total_nodes": policy_graph.nx_graph.number_of_nodes(),
+            "total_edges": policy_graph.nx_graph.number_of_edges(),
+            "average_degree": sum(dict(policy_graph.nx_graph.degree()).values()) / policy_graph.nx_graph.number_of_nodes() if policy_graph.nx_graph.number_of_nodes() else 0,
+            "connected_components": len(list(nx.connected_components(policy_graph.nx_graph))),
+            "diameter": nx.diameter(policy_graph.nx_graph) if nx.is_connected(policy_graph.nx_graph) else "Disconnected"
+        }
     }
     
     # Save to file
@@ -1927,9 +1749,13 @@ def save_policy_graph(policy_graph: PolicyGraph, config: DatasetConfig):
 def main(config: DatasetConfig):
     """Main generation pipeline."""
     
-    print("=== Synthetic Customer Support Dataset Generator ===")
+    print("=== Synthetic Customer Support Dataset Generator (LLM-Driven Policy Analysis) ===")
     print(f"Mode: {config.mode}")
     print(f"Output directory: {config.output_dir}")
+    
+    # Check dependencies
+    if not check_dependencies():
+        return
     
     if config.mode == "append":
         # Load existing data
@@ -1939,10 +1765,31 @@ def main(config: DatasetConfig):
             existing_tickets = load_existing_tickets(config)
             print(f"Loaded {len(existing_tickets)} existing tickets")
             
-            # Recreate policy graph and scenario templates for consistency
-            policy_graph = create_policy_graph(config)
-            scenario_templates = create_scenario_templates()
-            print(f"Recreated policy graph and scenario templates")
+            # For append mode, we need to recreate the policy graph from the existing policy
+            print("Recreating policy graph from existing policy document...")
+            
+            try:
+                # Parse existing policy and rebuild graph
+                clauses = parse_policy_document(policy)
+                if not clauses:
+                    raise Exception("Failed to parse existing policy document")
+                
+                # Rebuild interactions (this might be expensive but ensures consistency)
+                print("Re-analyzing policy interactions...")
+                interactions = analyze_policy_interactions(clauses)
+                
+                # Rebuild graph
+                policy_graph = PolicyGraph()
+                for clause in clauses:
+                    policy_graph.add_clause(clause)
+                for interaction in interactions:
+                    policy_graph.add_interaction(interaction)
+                
+                scenario_templates = create_scenario_templates()
+                print(f"✓ Recreated policy graph with {len(policy_graph.clauses)} clauses and {len(interactions)} interactions")
+            except Exception as e:
+                print(f"ERROR: Failed to recreate policy graph: {e}")
+                return
         except FileNotFoundError as e:
             print(f"Error: Could not find existing data files. Please run in 'create' mode first.")
             print(f"Missing file: {e}")
@@ -1951,14 +1798,16 @@ def main(config: DatasetConfig):
         # Create mode - generate everything from scratch
         existing_tickets = []
         
-        # Phase 1: Company Foundation
-        print("\nPhase 1: Generating company foundation...")
-        print("- Creating policy graph...")
-        policy_graph = create_policy_graph(config)
-        print(f"  ✓ Created policy graph with {len(policy_graph.clauses)} policy clauses")
+        # Phase 1: Company Foundation (NEW LLM-DRIVEN APPROACH)
+        print("\nPhase 1: Generating company foundation with LLM analysis...")
+        print("=" * 60)
         
-        print("- Generating policy document from graph...")
-        policy = generate_company_policy_from_graph(config, policy_graph)
+        try:
+            policy_graph, policy = build_policy_graph_with_llm(config)
+            print(f"  ✓ Successfully built policy graph with {len(policy_graph.clauses)} policy clauses")
+        except Exception as e:
+            print(f"ERROR: Failed to build policy graph: {e}")
+            return
         
         print("- Creating scenario templates...")
         scenario_templates = create_scenario_templates()
@@ -2040,9 +1889,9 @@ def main(config: DatasetConfig):
         else:
             print(f"  Customer: {customer['customer_id']} (no specific order)")
         
-        # Select and customize scenario template with pre-validated policies
-        scenario = select_and_customize_scenario(policy_graph, scenario_templates, 
-                                                dimensions['query_type'], order, customer, order_products)
+        # Select and customize scenario template with LLM-based policy graph
+        scenario = select_and_customize_scenario_v2(policy_graph, scenario_templates, 
+                                                   dimensions['query_type'], order, customer, order_products)
         print(f"  Scenario: {scenario['name']} (complexity {scenario['complexity_level']})")
         print(f"  Primary policy: {scenario['primary_policy']}")
         print(f"  Applicable policies: {scenario['applicable_policies']}")
@@ -2054,8 +1903,8 @@ def main(config: DatasetConfig):
             print(f"  ERROR: Failed to generate email, skipping ticket...")
             continue
         
-        # Generate resolution using policy graph
-        resolution = generate_resolution_v3(email, scenario, policy_graph, dimensions)
+        # Generate resolution using LLM-based policy graph
+        resolution = generate_resolution_v4(email, scenario, policy_graph, dimensions)
         if not resolution:
             print(f"  ERROR: Failed to generate resolution, skipping ticket...")
             continue
@@ -2203,7 +2052,7 @@ if __name__ == "__main__":
         config.num_tickets = 5
         config.num_products = 6
         config.num_customers = 5
-        config.num_orders = 8
+        config.num_orders = 7
     
     # Run generation
     main(config)

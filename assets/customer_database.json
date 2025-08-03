@@ -1,11 +1,11 @@
 {
   "customers": [
     {
-      "customer_id": "CUST-2984",
+      "customer_id": "CUST-2947",
       "name": "Maria Rodriguez-Smith",
       "primary_email": "maria.rodriguez@gmail.com",
       "alternate_emails": [
-        "maria.smith1975@yahoo.com"
+        "maria.smith@gmail.com"
       ],
       "phone": "555-123-4567",
       "shipping_addresses": [
@@ -24,12 +24,12 @@
           "zip": "91234"
         }
       ],
-      "created_date": "2022-10-27"
+      "created_date": "2022-11-15"
     },
     {
-      "customer_id": "CUST-8765",
+      "customer_id": "CUST-8519",
       "name": "David Lee",
-      "primary_email": "david.lee@example.com",
+      "primary_email": "david.lee@yahoo.com",
       "phone": "555-987-6543",
       "shipping_addresses": [
         {
@@ -47,73 +47,276 @@
       ],
       "billing_addresses": [
         {
-          "street": "789 Pine Ln",
+          "street": "456 Oak Ave",
           "city": "Springfield",
           "state": "IL",
           "zip": "62704"
         }
       ],
-      "created_date": "2021-05-15"
+      "created_date": "2021-05-20"
+    },
+    {
+      "customer_id": "CUST-3072",
+      "name": "Emily Chen",
+      "primary_email": "emily.chen@outlook.com",
+      "alternate_emails": [],
+      "phone": "555-555-1212",
+      "shipping_addresses": [
+        {
+          "street": "10 Downing St",
+          "city": "London",
+          "state": "XX",
+          "zip": "SW1A 2AA"
+        }
+      ],
+      "billing_addresses": [
+        {
+          "street": "221B Baker St",
+          "city": "London",
+          "state": "XX",
+          "zip": "NW1 6XE"
+        }
+      ],
+      "created_date": "2023-09-01"
+    },
+    {
+      "customer_id": "CUST-9641",
+      "name": "Robert Jones",
+      "primary_email": "robert.jones@example.com",
+      "alternate_emails": [
+        "rob.jones@example.com"
+      ],
+      "phone": "555-111-2222",
+      "shipping_addresses": [
+        {
+          "street": "1 Infinite Loop",
+          "city": "Cupertino",
+          "state": "CA",
+          "zip": "95014"
+        }
+      ],
+      "billing_addresses": [
+        {
+          "street": "1 Infinite Loop",
+          "city": "Cupertino",
+          "state": "CA",
+          "zip": "95014"
+        }
+      ],
+      "created_date": "2024-01-28"
+    },
+    {
+      "customer_id": "CUST-1285",
+      "name": "Susan O'Malley",
+      "primary_email": "susan.omalley@gmail.com",
+      "alternate_emails": [
+        "susan.omally@gmail.com",
+        "sue.o'malley@gmail.com"
+      ],
+      "phone": "555-333-4444",
+      "shipping_addresses": [
+        {
+          "street": "742 Evergreen Terrace",
+          "city": "Springfield",
+          "state": "OR",
+          "zip": "97403"
+        },
+        {
+          "street": "1600 Pennsylvania Ave NW",
+          "city": "Washington",
+          "state": "DC",
+          "zip": "20500"
+        }
+      ],
+      "billing_addresses": [
+        {
+          "street": "742 Evergreen Terrace",
+          "city": "Springfield",
+          "state": "OR",
+          "zip": "97403"
+        }
+      ],
+      "created_date": "2023-03-10"
     }
   ],
   "orders": [
     {
-      "order_id": "ORD-20250303-1001",
-      "customer_id": "CUST-2984",
-      "order_date": "2025-03-03",
+      "order_id": "ORD-20250515-1001",
+      "customer_id": "CUST-2947",
+      "order_date": "2025-05-15",
       "items": [
         {
-          "product_id": "PROD-2003",
+          "product_id": "PROD-2006",
           "quantity": 1,
-          "price_paid": 1999.99,
-          "item_status": "processing"
-        }
-      ],
-      "shipping_method": "standard",
-      "tracking_number": "1Z923AA10198765432",
-      "total_amount": 1999.99,
-      "payment_method": "credit_card",
-      "order_status": "processing"
-    },
-    {
-      "order_id": "ORD-20250524-1002",
-      "customer_id": "CUST-8765",
-      "order_date": "2025-05-24",
-      "items": [
-        {
-          "product_id": "PROD-2001",
-          "quantity": 1,
-          "price_paid": 99.99,
+          "price_paid": 89.99,
           "item_status": "delivered"
         },
         {
-          "product_id": "PROD-2002",
+          "product_id": "PROD-2001",
           "quantity": 1,
-          "price_paid": 236.55,
+          "price_paid": 1299.0,
           "item_status": "delivered"
         }
       ],
       "shipping_method": "standard",
       "tracking_number": "1Z999AA10123456784",
-      "total_amount": 336.54,
+      "total_amount": 1388.99,
       "payment_method": "credit_card",
       "order_status": "delivered"
     },
     {
-      "order_id": "ORD-20250627-1003",
-      "customer_id": "CUST-2984",
-      "order_date": "2025-06-27",
+      "order_id": "ORD-20250220-1002",
+      "customer_id": "CUST-8519",
+      "order_date": "2025-02-20",
       "items": [
         {
-          "product_id": "PROD-2001",
+          "product_id": "PROD-2002",
           "quantity": 1,
-          "price_paid": 99.99,
+          "price_paid": 119.99,
           "item_status": "delivered"
         }
       ],
       "shipping_method": "standard",
       "tracking_number": "1Z999AA10123456784",
-      "total_amount": 99.99,
+      "total_amount": 119.99,
+      "payment_method": "credit_card",
+      "order_status": "delivered"
+    },
+    {
+      "order_id": "ORD-20250603-1003",
+      "customer_id": "CUST-3072",
+      "order_date": "2025-06-03",
+      "items": [
+        {
+          "product_id": "PROD-2002",
+          "quantity": 1,
+          "price_paid": 119.99,
+          "item_status": "delivered"
+        },
+        {
+          "product_id": "PROD-2001",
+          "quantity": 1,
+          "price_paid": 1299.0,
+          "item_status": "delivered"
+        }
+      ],
+      "shipping_method": "standard",
+      "tracking_number": "1Z999AA10123456784",
+      "total_amount": 1418.99,
+      "payment_method": "credit_card",
+      "order_status": "delivered"
+    },
+    {
+      "order_id": "ORD-20250616-1004",
+      "customer_id": "CUST-9641",
+      "order_date": "2025-06-16",
+      "items": [
+        {
+          "product_id": "PROD-2003",
+          "quantity": 1,
+          "price_paid": 1599.99,
+          "item_status": "delivered"
+        },
+        {
+          "product_id": "PROD-2005",
+          "quantity": 1,
+          "price_paid": 455.05,
+          "item_status": "delivered"
+        }
+      ],
+      "shipping_method": "standard",
+      "tracking_number": "1Z999AA10123456784",
+      "total_amount": 2055.04,
+      "payment_method": "credit_card",
+      "order_status": "delivered"
+    },
+    {
+      "order_id": "ORD-20250723-1005",
+      "customer_id": "CUST-1285",
+      "order_date": "2025-07-23",
+      "items": [
+        {
+          "product_id": "PROD-2004",
+          "quantity": 1,
+          "price_paid": 47.49,
+          "item_status": "delivered"
+        }
+      ],
+      "shipping_method": "standard",
+      "tracking_number": "1Z921A230374859601",
+      "total_amount": 47.49,
+      "payment_method": "credit_card",
+      "order_status": "delivered"
+    },
+    {
+      "order_id": "ORD-20250203-1006",
+      "customer_id": "CUST-2947",
+      "order_date": "2025-02-03",
+      "items": [
+        {
+          "product_id": "PROD-2002",
+          "quantity": 1,
+          "price_paid": 119.99,
+          "item_status": "delivered"
+        }
+      ],
+      "shipping_method": "standard",
+      "tracking_number": "1Z999AA10123456784",
+      "total_amount": 119.99,
+      "payment_method": "credit_card",
+      "order_status": "delivered"
+    },
+    {
+      "order_id": "ORD-20250331-1007",
+      "customer_id": "CUST-8519",
+      "order_date": "2025-03-31",
+      "items": [
+        {
+          "product_id": "PROD-2005",
+          "quantity": 1,
+          "price_paid": 479.0,
+          "item_status": "delivered"
+        },
+        {
+          "product_id": "PROD-2001",
+          "quantity": 1,
+          "price_paid": 1299.0,
+          "item_status": "delivered"
+        },
+        {
+          "product_id": "PROD-2003",
+          "quantity": 1,
+          "price_paid": 1599.99,
+          "item_status": "delivered"
+        }
+      ],
+      "shipping_method": "standard",
+      "tracking_number": "1Z999AA10123456784",
+      "total_amount": 3377.99,
+      "payment_method": "credit_card",
+      "order_status": "delivered"
+    },
+    {
+      "order_id": "ORD-20250218-1008",
+      "customer_id": "CUST-3072",
+      "order_date": "2025-02-18",
+      "items": [
+        {
+          "product_id": "PROD-2001",
+          "quantity": 1,
+          "price_paid": 1299.0,
+          "item_status": "delivered"
+        },
+        {
+          "product_id": "PROD-2004",
+          "quantity": 2,
+          "price_paid": 44.99,
+          "item_status": "delivered"
+        }
+      ],
+      "shipping_method": "standard",
+      "tracking_number": "1Z92119AA123456789",
+      "total_amount": 1388.98,
       "payment_method": "credit_card",
       "order_status": "delivered"
     }
@@ -121,39 +324,75 @@
   "products": [
     {
       "product_id": "PROD-2001",
-      "name": "SparkPhone Go",
+      "name": "iPhone 15 Pro Max",
       "category": "phones",
-      "brand": "Generic",
-      "base_price": 99.99,
+      "brand": "Apple",
+      "base_price": 1299.0,
       "warranty_period": 365,
-      "weight": 0.8,
-      "requires_signature": false,
+      "weight": 0.5,
+      "requires_signature": true,
       "in_stock": true,
-      "description": "Budget-friendly smartphone with essential features. Perfect for first-time users."
+      "description": "The latest and greatest iPhone with advanced camera system and powerful processor."
     },
     {
       "product_id": "PROD-2002",
-      "name": "NoiseFree Pro Headphones",
-      "category": "audio",
-      "brand": "SoundWave",
-      "base_price": 249.0,
+      "name": "Galaxy Buds Live",
+      "category": "accessories",
+      "brand": "Samsung",
+      "base_price": 119.99,
+      "warranty_period": 90,
+      "weight": 0.1,
+      "requires_signature": false,
+      "in_stock": true,
+      "description": "Ergonomic wireless earbuds with active noise cancellation."
+    },
+    {
+      "product_id": "PROD-2003",
+      "name": "Legion 5 Pro",
+      "category": "gaming",
+      "brand": "Lenovo",
+      "base_price": 1599.99,
+      "warranty_period": 365,
+      "weight": 5.95,
+      "requires_signature": true,
+      "in_stock": true,
+      "description": "High-performance gaming laptop with powerful graphics and fast display."
+    },
+    {
+      "product_id": "PROD-2004",
+      "name": "Echo Dot (5th Gen)",
+      "category": "smart_home",
+      "brand": "Amazon",
+      "base_price": 49.99,
       "warranty_period": 365,
       "weight": 0.6,
       "requires_signature": false,
       "in_stock": true,
-      "description": "Over-ear headphones with active noise cancellation for immersive listening."
+      "description": "Smart speaker with Alexa voice assistant."
     },
     {
-      "product_id": "PROD-2003",
-      "name": "Gaming Beast X17",
-      "category": "laptops",
-      "brand": "EliteGame",
-      "base_price": 1999.99,
+      "product_id": "PROD-2005",
+      "name": "Canon EOS Rebel T7",
+      "category": "cameras",
+      "brand": "Canon",
+      "base_price": 479.0,
       "warranty_period": 365,
-      "weight": 6.5,
-      "requires_signature": true,
+      "weight": 0.9,
+      "requires_signature": false,
+      "in_stock": true,
+      "description": "Entry-level DSLR camera with 24.1MP sensor."
+    },
+    {
+      "product_id": "PROD-2006",
+      "name": "Fire HD 8 Tablet",
+      "category": "tablets",
+      "brand": "Amazon",
+      "base_price": 89.99,
+      "warranty_period": 365,
+      "weight": 0.7,
+      "requires_signature": false,
       "in_stock": false,
-      "description": "High-performance gaming laptop with dedicated graphics and a fast refresh rate display."
+      "description": "Affordable 8-inch tablet for entertainment and productivity."
     }
   ]
 }
