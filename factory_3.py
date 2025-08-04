@@ -1119,7 +1119,7 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
             ScenarioTemplate(
                 scenario_id="GENERAL-002",
                 name="product_comparison",
-                description="Customer asking for comparison between 2 specific products or details about warranty/specs for a particular product (mention specific product names)",
+                description="Customer asking for comparison between 2 specific products in the company's catalog. Customer asks about warranty/specs for the products and mentions specific product names",
                 primary_policy="POL-INFO-001",
                 all_relevant_policies=["POL-INFO-001", "POL-COMM-001"],
                 context_requirements={},
@@ -1530,10 +1530,10 @@ def generate_customers(config: DatasetConfig) -> List[Dict]:
     - customer_id (CUST-XXXX format)
     - name (realistic mix)
     - primary_email 
-    - alternate_emails (20% have 1-2 alternates as array)
+    - alternate_email (20% have 1 alternate email as string, not array)
     - phone
-    - shipping_addresses (array with 1-2 addresses, include street, city, state, zip)
-    - billing_addresses (array, 70% same as shipping)
+    - shipping_address (single address object with street, city, state, zip)
+    - billing_address (single address object, 70% same as shipping)
     - created_date (distribute over past {config.customer_history_days} days)
 
 Include some quirks:
@@ -2605,10 +2605,10 @@ if __name__ == "__main__":
     # For testing, use smaller numbers by default
     if len(sys.argv) == 1:  # No arguments provided
         print("No arguments provided. Using test configuration with small dataset.")
-        config.num_tickets = 10
-        config.num_products = 10
-        config.num_customers = 10
-        config.num_orders = 10
+        config.num_tickets = 100
+        config.num_products = 35
+        config.num_customers = 50
+        config.num_orders = 70
     
     # Run generation
     main(config)

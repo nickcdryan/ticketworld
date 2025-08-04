@@ -128,7 +128,7 @@ class PolicyGraph:
                         related.append(node)
                 except nx.NetworkXNoPath:
                     # No path exists
-                continue
+                    continue
         
         return related
     
@@ -987,10 +987,10 @@ def generate_customers(config: DatasetConfig) -> List[Dict]:
     - customer_id (CUST-XXXX format)
     - name (realistic mix)
     - primary_email 
-    - alternate_emails (20% have 1-2 alternates as array)
+    - alternate_email (20% have 1 alternate email as string, not array)
     - phone
-    - shipping_addresses (array with 1-2 addresses, include street, city, state, zip)
-    - billing_addresses (array, 70% same as shipping)
+    - shipping_address (single address object with street, city, state, zip)
+    - billing_address (single address object, 70% same as shipping)
     - created_date (distribute over past {config.customer_history_days} days)
 
 Include some quirks:
@@ -1785,7 +1785,7 @@ def main(config: DatasetConfig):
                 for interaction in interactions:
                     policy_graph.add_interaction(interaction)
                 
-            scenario_templates = create_scenario_templates()
+                scenario_templates = create_scenario_templates()
                 print(f"✓ Recreated policy graph with {len(policy_graph.clauses)} clauses and {len(interactions)} interactions")
             except Exception as e:
                 print(f"ERROR: Failed to recreate policy graph: {e}")

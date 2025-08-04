@@ -571,10 +571,10 @@ def generate_customers(config: DatasetConfig) -> List[Dict]:
     - customer_id (CUST-XXXX format)
     - name (realistic mix)
     - primary_email 
-    - alternate_emails (20% have 1-2 alternates as array)
+    - alternate_email (20% have 1 alternate email as string, not array)
     - phone
-    - shipping_addresses (array with 1-2 addresses, include street, city, state, zip)
-    - billing_addresses (array, 70% same as shipping)
+    - shipping_address (single address object with street, city, state, zip)
+    - billing_address (single address object, 70% same as shipping)
     - loyalty_tier (bronze: 60%, silver: 30%, gold: 10%)
     - created_date (distribute over past {config.customer_history_days} days)
     - lifetime_value (realistic based on tier: bronze $50-500, silver $500-{config.vip_lifetime_value_threshold}, gold ${config.vip_lifetime_value_threshold}+)
@@ -598,10 +598,10 @@ IMPORTANT: Return ONLY the JSON array, no explanatory text before or after."""
             "customer_id": "CUST-1001",
             "name": "Test Customer",
             "primary_email": "test@example.com",
-            "alternate_emails": [],
+            "alternate_email": "test2@example.com",
             "phone": "555-0100",
-            "shipping_addresses": [{"street": "123 Test St", "city": "Test City", "state": "CA", "zip": "94555"}],
-            "billing_addresses": [{"street": "123 Test St", "city": "Test City", "state": "CA", "zip": "94555"}],
+            "shipping_address": {"street": "123 Test St", "city": "Test City", "state": "CA", "zip": "94555"},
+            "billing_address": {"street": "123 Test St", "city": "Test City", "state": "CA", "zip": "94555"},
             "loyalty_tier": "bronze",
             "created_date": "2024-01-01",
             "lifetime_value": 250.00
