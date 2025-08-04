@@ -18,6 +18,16 @@ Conditions: within_return_window
 Rule: Defective items: Full refund, no restocking fee regardless of opened status
 Conditions: within_return_window
 
+Exchange Policy
+===============
+
+[POL-EXCHANGE-001] Exchange Window
+Rule: Exchanges allowed within 30 days for same or higher value item. Customer pays price difference if applicable.
+Conditions: within_return_window, receipt_required
+
+[POL-EXCHANGE-002] Defective Item Exchange
+Rule: Defective items exchanged for same item at no cost. If same item unavailable, full refund or credit offered.
+
 Shipping Policy
 ===============
 
@@ -31,7 +41,7 @@ Rule: Package not received: Replacement sent after carrier investigation (3 busi
 Rule: Investigation period: 3 business days required before replacement for lost packages
 
 [POL-SHIP-004] Wrong Item Shipped
-Rule: Wrong item shipped: Free return label provided, correct item sent immediately
+Rule: Wrong item shipped: Free return label provided, correct item sent immediately. No time limit - this is merchant error.
 
 [POL-SHIP-005] Damage Claims High Value
 Rule: Damaged items over $500: Photo required before replacement approved
@@ -87,3 +97,9 @@ Rule: Response time: Within 24 hours
 [POL-COMM-002] Escalation
 Rule: Escalation: Available for orders over $1000
 Conditions: item_over_500
+
+Product Information
+===================
+
+[POL-INFO-001] Product Information Requests
+Rule: Product availability, specifications, and pricing information provided upon request. Stock status subject to real-time availability.

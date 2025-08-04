@@ -1,41 +1,476 @@
 [
   {
-    "ticket_id": "TK-20250802-9997",
-    "customer_email": "david.lee@yahoo.com",
-    "subject": "Damaged Galaxy Buds Live",
-    "body": "Dear Customer Support,\n\nI am writing to you because my recent order arrived damaged. The Galaxy Buds Live were damaged in the box when I received them. \n\nI'm not sure what to do next, but I would appreciate it if you could help me resolve this issue.\n\nThanks,\nDavid Lee",
-    "timestamp": "2025-08-02T18:04:09.691953",
-    "customer_id": "CUST-8519",
-    "order_id": "ORD-20250220-1002",
+    "ticket_id": "TK-20250803-2299",
+    "customer_email": "john.smith@outlook.com",
+    "subject": "Product Information Request",
+    "body": "Dear Customer Support,\n\nI am looking for some information regarding your product options. I'm trying to understand the differences between a couple of your items and would appreciate some help.\n\nCould you provide a recommendation or highlight the key distinctions between some of your products? I'm hoping this will help me make a decision.\n\nThank you for your time.\n\nSincerely,\nJohn Smith",
+    "timestamp": "2025-08-03T20:43:49.493975",
+    "customer_id": "CUST-0002",
+    "order_id": "N/A",
     "resolution_plan": {
-      "order_id": "ORD-20250220-1002",
-      "order_date": "2025-02-20",
+      "order_id": "N/A",
+      "order_date": "N/A",
       "customer_lookup": {
         "status": "found",
-        "customer_id": "CUST-8519",
+        "customer_id": "CUST-0002",
         "lookup_method": "email_match",
         "notes": "Customer found in database"
       },
       "policy_references": [
-        "POL-SHIP-006"
+        "POL-INFO-001",
+        "POL-COMM-001"
       ],
-      "policy_reasoning": "The customer reported a damaged item upon arrival. Since the item is valued under $500, policy POL-SHIP-006 allows for immediate replacement.",
+      "policy_reasoning": "The customer is requesting information about product options and distinctions. According to POL-INFO-001, we are required to provide product availability, specifications, and pricing information upon request. This policy directly addresses the customer's inquiry for product details. Additionally, POL-COMM-001 mandates that responses be provided within 24 hours.",
       "actions": [
         {
-          "type": "send_replacement",
-          "reason": "The Galaxy Buds Live arrived damaged. As per policy POL-SHIP-006, damaged items under $500 are eligible for immediate replacement.",
-          "value": 119.99,
-          "details": "Shipping a replacement Galaxy Buds Live to the customer's address on file."
+          "type": "provide_information",
+          "reason": "Customer requested product information, specifications, and distinctions, which is covered under POL-INFO-001. We will provide a comparison of the requested products.",
+          "value": 0,
+          "details": "Provide detailed information on product specifications, key distinctions, and pricing to help the customer make an informed decision. Ensure information is accurate and up-to-date with current stock."
+        }
+      ],
+      "escalation_required": false,
+      "escalation_reason": null,
+      "priority": "low",
+      "total_resolution_value": 0
+    },
+    "_scenario_dimensions": {
+      "query_type": "general_inquiry",
+      "information_completeness": "minimal_details",
+      "complexity": "requires_lookup",
+      "customer_sentiment": "neutral"
+    },
+    "_scenario_template": {
+      "scenario_id": "GENERAL-002",
+      "name": "product_comparison",
+      "primary_policy": "POL-INFO-001",
+      "complexity_level": 1,
+      "expected_outcome": "information"
+    },
+    "_policy_analysis": {
+      "all_relevant_policies": [
+        "POL-INFO-001",
+        "POL-COMM-001"
+      ],
+      "applicable_policies": [
+        "POL-INFO-001",
+        "POL-COMM-001"
+      ],
+      "context_used": {
+        "has_receipt": true,
+        "customer_tier": "standard"
+      },
+      "policy_interactions": "Multi-hop reasoning required"
+    }
+  },
+  {
+    "ticket_id": "TK-20250606-7951",
+    "customer_email": "david.lee@yahoo.com",
+    "subject": "Exchange Request for Laptop",
+    "body": "Dear Customer Support,\n\nI recently ordered an Inspiron 15 Laptop from your website a few days ago. I need to exchange it for a different size.\n\nThe current laptop is not the correct size for my needs, and I would like to arrange an exchange for a different size model.\n\nPlease let me know the process for facilitating this exchange.\n\nThank you,\nDavid Lee",
+    "timestamp": "2025-06-06T10:30:00",
+    "customer_id": "CUST-0004",
+    "order_id": "ORD-20250531-1004",
+    "resolution_plan": {
+      "order_id": "ORD-20250531-1004",
+      "order_date": "2025-05-31",
+      "customer_lookup": {
+        "status": "found",
+        "customer_id": "CUST-0004",
+        "lookup_method": "email_match",
+        "notes": "Customer found in database"
+      },
+      "policy_references": [
+        "POL-EXCHANGE-001",
+        "POL-RETURN-001"
+      ],
+      "policy_reasoning": "The customer requested an exchange for the Inspiron 15 Laptop. According to [POL-EXCHANGE-001] 'Exchanges allowed within 30 days for same or higher value item. Customer pays price difference if applicable.' The purchase date was 2025-05-31 and the current date is 6 days after the purchase, which is well within the 30-day exchange window as per [POL-RETURN-001] (which establishes the general return/exchange window). The customer's request for a different size model aligns with the exchange policy, as long as it's for an item of same or higher value.",
+      "actions": [
+        {
+          "type": "process_exchange",
+          "reason": "Customer is within the 30-day exchange window and requested an exchange for a different size model, which is permissible under [POL-EXCHANGE-001].",
+          "value": 0,
+          "details": "Initiate exchange process for Inspiron 15 Laptop (PROD-1002). Advise customer they can exchange for a same or higher value item and will be responsible for any price difference."
+        }
+      ],
+      "escalation_required": false,
+      "escalation_reason": null,
+      "priority": "low",
+      "total_resolution_value": 0
+    },
+    "_scenario_dimensions": {
+      "query_type": "exchange_request",
+      "information_completeness": "missing_order_number",
+      "complexity": "straightforward",
+      "customer_sentiment": "neutral"
+    },
+    "_scenario_template": {
+      "scenario_id": "EXCHANGE-001",
+      "name": "exchange_within_window_size",
+      "primary_policy": "POL-EXCHANGE-001",
+      "complexity_level": 1,
+      "expected_outcome": "approve"
+    },
+    "_policy_analysis": {
+      "all_relevant_policies": [
+        "POL-EXCHANGE-001",
+        "POL-RETURN-001"
+      ],
+      "applicable_policies": [
+        "POL-EXCHANGE-001",
+        "POL-RETURN-001"
+      ],
+      "context_used": {
+        "has_receipt": true,
+        "customer_tier": "standard",
+        "days_since_purchase": 6,
+        "months_since_purchase": 0.19710906701708278,
+        "order_status": "delivered",
+        "total_order_value": 1198.0,
+        "item_over_500": true,
+        "item_value": 749.0,
+        "exchange_reason": "wrong_size",
+        "purchase_month": 5
+      },
+      "policy_interactions": "Multi-hop reasoning required"
+    }
+  },
+  {
+    "ticket_id": "TK-20250713-2148",
+    "customer_email": "sarah.miller@gmail.com",
+    "subject": "Product Availability Inquiry",
+    "body": "Dear Customer Support,\n\nI hope this email finds you well.\n\nI'm curious about the availability of some products. I was looking into potentially purchasing another item from your store, but I couldn't seem to find information on whether it's currently in stock.\n\nCould you please let me know when new stock might be available for various items, or if there's a way to check current inventory?\n\nThank you for your time and assistance.\n\nSincerely,\nSarah Miller",
+    "timestamp": "2025-07-13T10:30:00",
+    "customer_id": "CUST-0001",
+    "order_id": "ORD-20250703-1001",
+    "resolution_plan": {
+      "order_id": "ORD-20250703-1001",
+      "order_date": "2025-07-03",
+      "customer_lookup": {
+        "status": "found",
+        "customer_id": "CUST-0001",
+        "lookup_method": "email_match",
+        "notes": "Customer found in database"
+      },
+      "policy_references": [
+        "POL-INFO-001",
+        "POL-COMM-001"
+      ],
+      "policy_reasoning": "The customer is inquiring about product availability and stock information. According to [POL-INFO-001] Product Information Requests, 'Product availability, specifications, and pricing information provided upon request. Stock status subject to real-time availability.' This policy directly addresses the customer's request. Additionally, [POL-COMM-001] Response Time mandates a response within 24 hours.",
+      "actions": [
+        {
+          "type": "provide_information",
+          "reason": "Providing product availability information as per customer's request and [POL-INFO-001].",
+          "value": 0,
+          "details": "Informed customer that the Sony WH-1000XM5 (PROD-1009) is currently out of stock and advised on how to check real-time availability for other items on the website. No specific restock date can be provided at this time as per policy."
+        }
+      ],
+      "escalation_required": false,
+      "escalation_reason": null,
+      "priority": "low",
+      "total_resolution_value": 0
+    },
+    "_scenario_dimensions": {
+      "query_type": "general_inquiry",
+      "information_completeness": "minimal_details",
+      "complexity": "requires_lookup",
+      "customer_sentiment": "neutral"
+    },
+    "_scenario_template": {
+      "scenario_id": "GENERAL-001",
+      "name": "product_availability",
+      "primary_policy": "POL-INFO-001",
+      "complexity_level": 1,
+      "expected_outcome": "information"
+    },
+    "_policy_analysis": {
+      "all_relevant_policies": [
+        "POL-INFO-001",
+        "POL-COMM-001"
+      ],
+      "applicable_policies": [
+        "POL-INFO-001",
+        "POL-COMM-001"
+      ],
+      "context_used": {
+        "has_receipt": true,
+        "customer_tier": "standard",
+        "days_since_purchase": 10,
+        "months_since_purchase": 0.328515111695138,
+        "order_status": "delivered",
+        "total_order_value": 1148.98,
+        "item_over_500": true,
+        "item_value": 749.0
+      },
+      "policy_interactions": "Multi-hop reasoning required"
+    }
+  },
+  {
+    "ticket_id": "TK-20250612-2150",
+    "customer_email": "chris.white@outlook.com",
+    "subject": "Issue with Sony WH-1000XM5 from Order ORD-20250601-1006",
+    "body": "Dear Customer Support,\n\nI am writing to report an issue with a product I purchased recently. I ordered a Sony WH-1000XM5 on June 1, 2025, as part of order ORD-20250601-1006. \n\nThe Sony WH-1000XM5 headphones have stopped working. I received them a couple weeks ago, and they are no longer functioning correctly.\n\nCould you please advise on the next steps for a warranty claim?\n\nThank you for your assistance.\n\nSincerely,\nChris White",
+    "timestamp": "2025-06-12T10:30:00",
+    "customer_id": "CUST-0006",
+    "order_id": "ORD-20250601-1006",
+    "resolution_plan": {
+      "order_id": "ORD-20250601-1006",
+      "order_date": "2025-06-01",
+      "customer_lookup": {
+        "status": "found",
+        "customer_id": "CUST-0006",
+        "lookup_method": "email_match",
+        "notes": "Customer found in database"
+      },
+      "policy_references": [
+        "POL-WARRANTY-001",
+        "POL-WARRANTY-002",
+        "POL-COMM-001",
+        "POL-INFO-001"
+      ],
+      "policy_reasoning": "The customer reported an issue with their Sony WH-1000XM5 headphones, which stopped working 11 days after purchase. The product 'Sony WH-1000XM5' (PROD-1009) has a warranty period of 365 days (1 year) from the purchase date. Since only 11 days have passed since the purchase date of 2025-06-01, the item is well within the manufacturer's warranty period as per POL-WARRANTY-001. The issue described, a product stopping functioning, is consistent with a potential manufacturing defect, which is covered under warranty according to POL-WARRANTY-002. We will honor the warranty claim.",
+      "actions": [
+        {
+          "type": "honor_warranty",
+          "reason": "The Sony WH-1000XM5 headphones are within the manufacturer's warranty period (1 year from purchase date) as per POL-WARRANTY-001 and the reported issue appears to be a manufacturing defect covered by POL-WARRANTY-002. We will process a warranty claim for a replacement.",
+          "value": 349.99,
+          "details": "Initiate a warranty claim for the Sony WH-1000XM5 (PROD-1009). Provide instructions to the customer for returning the defective unit and inform them that a replacement will be sent upon receipt and inspection of the defective product. The value of the replacement is $349.99."
+        },
+        {
+          "type": "provide_information",
+          "reason": "To guide the customer through the warranty claim process in line with standard procedures.",
+          "value": 0,
+          "details": "Inform the customer about the process for returning the defective unit for warranty replacement, including any necessary shipping instructions or return labels."
         }
       ],
       "escalation_required": false,
       "escalation_reason": null,
       "priority": "medium",
-      "total_resolution_value": 119.99
+      "total_resolution_value": 349.99
+    },
+    "_scenario_dimensions": {
+      "query_type": "warranty_claim",
+      "information_completeness": "complete",
+      "complexity": "requires_lookup",
+      "customer_sentiment": "neutral"
+    },
+    "_scenario_template": {
+      "scenario_id": "WARRANTY-001",
+      "name": "warranty_claim_valid",
+      "primary_policy": "POL-WARRANTY-002",
+      "complexity_level": 1,
+      "expected_outcome": "approve"
+    },
+    "_policy_analysis": {
+      "all_relevant_policies": [
+        "POL-WARRANTY-001",
+        "POL-WARRANTY-002"
+      ],
+      "applicable_policies": [
+        "POL-WARRANTY-001",
+        "POL-WARRANTY-002"
+      ],
+      "context_used": {
+        "has_receipt": true,
+        "customer_tier": "standard",
+        "days_since_purchase": 11,
+        "months_since_purchase": 0.36136662286465177,
+        "order_status": "delivered",
+        "total_order_value": 429.96,
+        "item_value": 349.99,
+        "damage_type": "manufacturing",
+        "purchase_month": 6
+      },
+      "policy_interactions": "Multi-hop reasoning required"
+    }
+  },
+  {
+    "ticket_id": "TK-20250331-8318",
+    "customer_email": "mike.chen@example.org",
+    "subject": "Question about a recent order and return",
+    "body": "Dear Customer Support,\n\nI hope this email finds you well. I'm a bit confused about how to proceed with a return for an item I recently purchased.\n\nA couple of weeks ago, I ordered an EOS Rebel T7 DSLR from your website. While the camera arrived perfectly, I've decided it's not quite what I need after all. The product is still completely unopened in its original packaging.\n\nCould you please let me know the process for returning this item? I'd appreciate any guidance you can provide.\n\nThank you for your time and assistance.\n\nSincerely,\nMichael Chen",
+    "timestamp": "2025-03-31T11:05:22",
+    "customer_id": "CUST-0010",
+    "order_id": "ORD-20250306-1010",
+    "resolution_plan": {
+      "order_id": "ORD-20250306-1010",
+      "order_date": "2025-03-06",
+      "customer_lookup": {
+        "status": "found",
+        "customer_id": "CUST-0010",
+        "lookup_method": "email_match",
+        "notes": "Customer found in database"
+      },
+      "policy_references": [
+        "POL-RETURN-001",
+        "POL-RETURN-003"
+      ],
+      "policy_reasoning": "The customer is requesting to return an unopened EOS Rebel T7 DSLR camera purchased 25 days ago. According to [POL-RETURN-001], a 30-day return window from the delivery date applies to all items. Since 25 days have passed, the item is still within the acceptable return window. Additionally, [POL-RETURN-003] states that unopened items are eligible for a full refund with no restocking fee, provided they are within the return window. As the item is confirmed to be unopened, a full refund is applicable.",
+      "actions": [
+        {
+          "type": "process_return",
+          "reason": "Customer is within the 30-day return window as per POL-RETURN-001 and the item is unopened, qualifying for return as per POL-RETURN-003.",
+          "value": 0,
+          "details": "Return authorization for EOS Rebel T7 DSLR (PROD-1006). Customer will be provided with instructions for shipping the unopened item back."
+        },
+        {
+          "type": "issue_refund",
+          "reason": "Unopened item eligible for full refund as per POL-RETURN-003.",
+          "value": 449.0,
+          "details": "Full refund of $449.0 for EOS Rebel T7 DSLR (PROD-1006) to be processed upon receipt and inspection of the unopened item."
+        }
+      ],
+      "escalation_required": false,
+      "escalation_reason": null,
+      "priority": "low",
+      "total_resolution_value": 449.0
+    },
+    "_scenario_dimensions": {
+      "query_type": "return_request",
+      "information_completeness": "missing_order_number",
+      "complexity": "straightforward",
+      "customer_sentiment": "confused"
+    },
+    "_scenario_template": {
+      "scenario_id": "RETURN-001A",
+      "name": "return_within_window_unopened",
+      "primary_policy": "POL-RETURN-003",
+      "complexity_level": 1,
+      "expected_outcome": "approve"
+    },
+    "_policy_analysis": {
+      "all_relevant_policies": [
+        "POL-RETURN-001",
+        "POL-RETURN-003"
+      ],
+      "applicable_policies": [
+        "POL-RETURN-001",
+        "POL-RETURN-003"
+      ],
+      "context_used": {
+        "has_receipt": true,
+        "customer_tier": "standard",
+        "days_since_purchase": 25,
+        "months_since_purchase": 0.8212877792378449,
+        "order_status": "delivered",
+        "total_order_value": 449.0,
+        "item_value": 449.0,
+        "item_condition": "unopened",
+        "purchase_month": 3
+      },
+      "policy_interactions": "Multi-hop reasoning required"
+    }
+  },
+  {
+    "ticket_id": "TK-20250425-1258",
+    "customer_email": "jessica.brown@anotherdomain.net",
+    "subject": "Question about a recent order and pricing",
+    "body": "To Customer Support,\n\nI'm writing about a purchase I made a little over a week ago. I ordered a Universal USB-C Hub from your website.\n\nI'm a bit confused and also disappointed because I just saw the exact same product on Amazon for much cheaper. I was wondering if there's anything you can do about this, as I feel like I paid too much for something that's readily available elsewhere for less.\n\nThanks,\nJessica Brown",
+    "timestamp": "2025-04-25T16:35:10",
+    "customer_id": "CUST-0007",
+    "order_id": "ORD-20250417-1007",
+    "resolution_plan": {
+      "order_id": "ORD-20250417-1007",
+      "order_date": "2025-04-17",
+      "customer_lookup": {
+        "status": "found",
+        "customer_id": "CUST-0007",
+        "lookup_method": "email_match",
+        "notes": "Customer found in database"
+      },
+      "policy_references": [
+        "POL-PRICE-001",
+        "POL-PRICE-002"
+      ],
+      "policy_reasoning": "The customer is requesting a price match for a Universal USB-C Hub (PROD-1008) purchased 8 days ago, which is within the 14-day price match window as per [POL-PRICE-001]. However, the lower price was found on Amazon, which is considered a marketplace seller. According to [POL-PRICE-002], price matches do not apply to marketplace sellers.",
+      "actions": [
+        {
+          "type": "deny_price_match",
+          "reason": "Price match denied as the lower price was found on a marketplace seller (Amazon), which is an exclusion explicitly stated in policy [POL-PRICE-002].",
+          "value": 0,
+          "details": "Customer request for price match against an Amazon marketplace seller's price is not eligible under current policy."
+        }
+      ],
+      "escalation_required": false,
+      "escalation_reason": null,
+      "priority": "low",
+      "total_resolution_value": 0
+    },
+    "_scenario_dimensions": {
+      "query_type": "pricing_dispute",
+      "information_completeness": "minimal_details",
+      "complexity": "straightforward",
+      "customer_sentiment": "confused"
+    },
+    "_scenario_template": {
+      "scenario_id": "PRICE-002",
+      "name": "price_match_marketplace_amazon",
+      "primary_policy": "POL-PRICE-002",
+      "complexity_level": 2,
+      "expected_outcome": "deny"
+    },
+    "_policy_analysis": {
+      "all_relevant_policies": [
+        "POL-PRICE-002",
+        "POL-PRICE-001"
+      ],
+      "applicable_policies": [
+        "POL-PRICE-002",
+        "POL-PRICE-001"
+      ],
+      "context_used": {
+        "has_receipt": true,
+        "customer_tier": "standard",
+        "days_since_purchase": 8,
+        "months_since_purchase": 0.2628120893561104,
+        "order_status": "delivered",
+        "total_order_value": 39.99,
+        "item_value": 39.99,
+        "competitor_type": "marketplace",
+        "competitor_name": "Amazon third-party seller",
+        "purchase_month": 4
+      },
+      "policy_interactions": "Multi-hop reasoning required"
+    }
+  },
+  {
+    "ticket_id": "TK-20250507-2620",
+    "customer_email": "sophia.r@outlook.com",
+    "subject": "Damaged EOS Rebel T7 DSLR - Order ORD-20250504-1009",
+    "body": "Dear Customer Support,\n\nI am writing to you regarding an order I placed on May 4, 2025. My Order ID is ORD-20250504-1009. \n\nThe item I ordered was an EOS Rebel T7 DSLR, which is a significant purchase at $449.00. Unfortunately, it arrived damaged. The camera body has a noticeable dent on the side, and the lens has a deep scratch across the front element. This is very disappointing, especially for such an expensive item.\n\nCould you please advise on the next steps to resolve this shipping issue? I can provide more details or photos if needed.\n\nThank you for your assistance.\n\nSincerely,\nSophia Rodriguez",
+    "timestamp": "2025-05-07T10:30:00",
+    "customer_id": "CUST-0009",
+    "order_id": "ORD-20250504-1009",
+    "resolution_plan": {
+      "order_id": "ORD-20250504-1009",
+      "order_date": "2025-05-04",
+      "customer_lookup": {
+        "status": "found",
+        "customer_id": "CUST-0009",
+        "lookup_method": "email_match",
+        "notes": "Customer found in database"
+      },
+      "policy_references": [
+        "POL-SHIP-006",
+        "POL-RETURN-001"
+      ],
+      "policy_reasoning": "The customer reported a damaged EOS Rebel T7 DSLR, which has a value of $449.00. According to policy POL-SHIP-006 (Damage Claims Standard), damaged items under $500 are eligible for immediate replacement. The purchase date was May 4, 2025, and the customer contacted us 3 days later, which is well within the 30-day return window as per POL-RETURN-001 (Return Window). Since the item's value is under $500, policy POL-SHIP-005 (Damage Claims High Value), which requires a photo, does not apply. Escalation (POL-COMM-002) is also not required as the item value is below $1000.",
+      "actions": [
+        {
+          "type": "send_replacement",
+          "reason": "Damaged item under $500 is eligible for immediate replacement as per POL-SHIP-006.",
+          "value": 449.0,
+          "details": "A replacement EOS Rebel T7 DSLR (PROD-1006) will be shipped to Sophia Rodriguez at no additional cost."
+        }
+      ],
+      "escalation_required": false,
+      "escalation_reason": null,
+      "priority": "medium",
+      "total_resolution_value": 449.0
     },
     "_scenario_dimensions": {
       "query_type": "shipping_issue",
-      "information_completeness": "minimal_details",
+      "information_completeness": "complete",
       "complexity": "straightforward",
       "customer_sentiment": "neutral"
     },
@@ -49,139 +484,123 @@
     "_policy_analysis": {
       "all_relevant_policies": [
         "POL-SHIP-005",
-        "POL-SHIP-006"
+        "POL-RETURN-004",
+        "POL-COMM-002"
       ],
       "applicable_policies": [
-        "POL-SHIP-006"
+        "POL-RETURN-004",
+        "POL-SHIP-005",
+        "POL-COMM-002"
       ],
       "context_used": {
         "has_receipt": true,
         "customer_tier": "standard",
-        "days_since_purchase": 163,
-        "months_since_purchase": 5.354796320630749,
+        "days_since_purchase": 3,
+        "months_since_purchase": 0.09855453350854139,
         "order_status": "delivered",
-        "total_order_value": 119.99,
-        "item_value": 119.99
+        "total_order_value": 449.0,
+        "item_value": 752,
+        "days_since_delivery": 3,
+        "purchase_month": 5
       },
       "policy_interactions": "Multi-hop reasoning required"
     }
   },
   {
-    "ticket_id": "TK-20250802-2222",
-    "customer_email": "susan.omalley@gmail.com",
-    "subject": "Return Request - Echo Dot",
-    "body": "Dear Customer Support,\n\nI am writing to request a return for a product I recently purchased. It was an Echo Dot (5th Gen) that I bought as a holiday purchase. \n\nI'm hoping to return it, if possible.\n\nThank you for your help.\n\nSincerely,\nSusan O'Malley\nsusan.o'malley@gmail.com",
-    "timestamp": "2025-08-02T18:04:13.996595",
-    "customer_id": "CUST-1285",
-    "order_id": "ORD-20250723-1005",
+    "ticket_id": "TK-20250521-7322",
+    "customer_email": "jessica.brown@anotherdomain.net",
+    "subject": "Return Request - Universal USB-C Hub",
+    "body": "Dear Customer Support,\n\nI hope this email finds you well. I am writing regarding a recent purchase I made about a month ago. I would like to inquire about the possibility of returning the Universal USB-C Hub.\n\nI apologize for the delay in reaching out. Due to a very busy schedule, I haven't had a chance to properly address this until now. The item is still unopened in its original packaging.\n\nCould you please let me know if a return is still possible?\n\nThank you for your time and assistance.\n\nSincerely,\nJessica Brown",
+    "timestamp": "2025-05-21T10:35:12",
+    "customer_id": "CUST-0007",
+    "order_id": "ORD-20250417-1007",
     "resolution_plan": {
-      "order_id": "ORD-20250723-1005",
-      "order_date": "2025-07-23",
+      "order_id": "ORD-20250417-1007",
+      "order_date": "2025-04-17",
       "customer_lookup": {
         "status": "found",
-        "customer_id": "CUST-1285",
+        "customer_id": "CUST-0007",
         "lookup_method": "email_match",
         "notes": "Customer found in database"
       },
       "policy_references": [
-        "POL-RETURN-004",
-        "POL-HOLIDAY-001",
-        "POL-RETURN-001",
-        "POL-RETURN-003"
+        "POL-RETURN-001"
       ],
-      "policy_reasoning": "The customer is requesting a return for an Echo Dot (5th Gen) purchased within the standard 30-day return window outlined in POL-RETURN-001. While the purchase was not made between November 1st and December 31st, the item is still within the normal 30-day return window so POL-HOLIDAY-001 does not affect this request.",
+      "policy_reasoning": "The customer requested a return for the 'Universal USB-C Hub' 34 days after the order date. According to POL-RETURN-001, the return window for all items is 30 days from the delivery date, and no returns are accepted after 30 days for any reason. Since 34 days have passed, the request falls outside the defined return window.",
       "actions": [
         {
-          "type": "process_return",
-          "reason": "The customer is within the 30-day return window as per POL-RETURN-001.",
+          "type": "deny_return",
+          "reason": "The return request is outside the 30-day return window as per POL-RETURN-001.",
           "value": 0,
-          "details": "Initiate the return process for the Echo Dot (5th Gen), product ID PROD-2004."
-        },
-        {
-          "type": "issue_refund",
-          "reason": "The customer is eligible for a full refund as the return is within the 30-day return window per POL-RETURN-001.",
-          "value": 47.49,
-          "details": "Issue a refund of $47.49 to the customer's original payment method upon receiving the returned Echo Dot."
+          "details": "Customer's request for return of PROD-1008 denied due to being past the 30-day return window."
         }
       ],
       "escalation_required": false,
       "escalation_reason": null,
-      "priority": "medium",
-      "total_resolution_value": 47.49
+      "priority": "low",
+      "total_resolution_value": 0
     },
     "_scenario_dimensions": {
       "query_type": "return_request",
-      "information_completeness": "wrong_email",
-      "complexity": "edge_case",
+      "information_completeness": "minimal_details",
+      "complexity": "straightforward",
       "customer_sentiment": "neutral"
     },
     "_scenario_template": {
-      "scenario_id": "RETURN-005",
-      "name": "return_holiday_extended",
-      "primary_policy": "POL-HOLIDAY-001",
-      "complexity_level": 3,
-      "expected_outcome": "approve"
+      "scenario_id": "RETURN-002A",
+      "name": "return_just_outside_window",
+      "primary_policy": "POL-RETURN-001",
+      "complexity_level": 1,
+      "expected_outcome": "deny"
     },
     "_policy_analysis": {
       "all_relevant_policies": [
-        "POL-HOLIDAY-001",
-        "POL-RETURN-001",
-        "POL-RETURN-002",
-        "POL-RETURN-003",
-        "POL-RETURN-004"
+        "POL-RETURN-001"
       ],
-      "applicable_policies": [
-        "POL-RETURN-004",
-        "POL-HOLIDAY-001",
-        "POL-RETURN-001",
-        "POL-RETURN-003"
-      ],
+      "applicable_policies": [],
       "context_used": {
         "has_receipt": true,
         "customer_tier": "standard",
-        "days_since_purchase": 10,
-        "months_since_purchase": 0.328515111695138,
+        "days_since_purchase": 34,
+        "months_since_purchase": 1.1169513797634691,
         "order_status": "delivered",
-        "total_order_value": 47.49,
-        "item_value": 47.49
+        "total_order_value": 39.99,
+        "item_value": 39.99,
+        "item_condition": "unopened",
+        "purchase_month": 4
       },
-      "policy_interactions": "Multi-hop reasoning required"
+      "policy_interactions": "Single policy"
     }
   },
   {
-    "ticket_id": "TK-20250802-5458",
-    "customer_email": "david.lee@yahoo.com",
-    "subject": "Inquiry about Order ORD-20250331-1007 - Package marked as Delivered but Not Received",
-    "body": "Dear Customer Support,\n\nI am writing to inquire about order ORD-20250331-1007, which I placed on March 31, 2025. The order includes a Canon EOS Rebel T7, an iPhone 15 Pro Max, and a Legion 5 Pro. The total was $3377.99.\n\nThe tracking information (1Z999AA10123456784) indicates that the package was delivered, but I have not received it. I checked with my neighbors to see if it was accidentally delivered to their homes, but no one has it.\n\nI'm a bit worried about this. Could you please investigate this issue and let me know what steps can be taken to locate my package? I would appreciate it if you could provide me with more details about the delivery date and location that was recorded.\n\nThank you for your time and assistance.\n\nSincerely,\nDavid Lee\ndavid.lee@yahoo.com",
-    "timestamp": "2025-08-02T18:04:18.691355",
-    "customer_id": "CUST-8519",
-    "order_id": "ORD-20250331-1007",
+    "ticket_id": "TK-20250513-5357",
+    "customer_email": "sophia.r@outlook.com",
+    "subject": "Missing Order - Order ID: ORD-20250504-1009",
+    "body": "Dear Customer Support,\n\nI am writing to you regarding an order I placed on May 4, 2025, for an EOS Rebel T7 DSLR. My order ID is ORD-20250504-1009.\n\nThe tracking information (1Z999AA10123456784) for this order indicates that it was delivered. However, I have not received the package. I have checked my porch, mailbox, and with my neighbors, but the package is nowhere to be found.\n\nI am quite worried as the tracking shows it was delivered, but I genuinely did not receive it. Could you please investigate this issue for me?\n\nThank you for your assistance.\n\nSincerely,\nSophia Rodriguez",
+    "timestamp": "2025-05-13T17:05:30",
+    "customer_id": "CUST-0009",
+    "order_id": "ORD-20250504-1009",
     "resolution_plan": {
-      "order_id": "ORD-20250331-1007",
-      "order_date": "2025-03-31",
+      "order_id": "ORD-20250504-1009",
+      "order_date": "2025-05-04",
       "customer_lookup": {
         "status": "found",
-        "customer_id": "CUST-8519",
+        "customer_id": "CUST-0009",
         "lookup_method": "email_match",
         "notes": "Customer found in database"
       },
       "policy_references": [
+        "POL-SHIP-002",
         "POL-SHIP-003",
-        "POL-SHIP-002"
+        "POL-COMM-001"
       ],
-      "policy_reasoning": "The customer reports not receiving the package, despite it being marked as delivered. Since the package has not been received, POL-SHIP-002 applies. As per POL-SHIP-003, we must initiate an investigation before sending a replacement.",
+      "policy_reasoning": "The customer reported not receiving a package that was marked as delivered. According to POL-SHIP-002 (Package Not Received) and POL-SHIP-003 (Investigation Required), a replacement can be sent only after a carrier investigation, which typically takes 3 business days. Therefore, the first step is to initiate this investigation.",
       "actions": [
         {
           "type": "initiate_investigation",
-          "reason": "The customer reports not receiving the package. Per POL-SHIP-003, an investigation must be initiated to locate the package.",
+          "reason": "Customer reported not receiving a package marked as delivered, requiring a carrier investigation as per POL-SHIP-002 and POL-SHIP-003.",
           "value": 0,
-          "details": "Initiating investigation with the carrier to determine the whereabouts of the package. The investigation will take 3 business days."
-        },
-        {
-          "type": "provide_information",
-          "reason": "The customer needs to know what steps are being taken. Per POL-SHIP-002, after the investigation, we will send a replacement.",
-          "value": 0,
-          "details": "Informing the customer that an investigation has been initiated and that a replacement will be sent after the 3 business day investigation period, assuming the package is not located."
+          "details": "Initiate a 3-business-day carrier investigation for Order ID: ORD-20250504-1009. Customer will be contacted with an update after the investigation period. (POL-SHIP-002, POL-SHIP-003)"
         }
       ],
       "escalation_required": false,
@@ -192,12 +611,12 @@
     "_scenario_dimensions": {
       "query_type": "shipping_issue",
       "information_completeness": "complete",
-      "complexity": "requires_lookup",
+      "complexity": "edge_case",
       "customer_sentiment": "neutral"
     },
     "_scenario_template": {
       "scenario_id": "SHIP-001",
-      "name": "package_not_received",
+      "name": "package_not_received_recent",
       "primary_policy": "POL-SHIP-002",
       "complexity_level": 2,
       "expected_outcome": "investigate"
@@ -214,154 +633,85 @@
       "context_used": {
         "has_receipt": true,
         "customer_tier": "standard",
-        "days_since_purchase": 124,
-        "months_since_purchase": 4.073587385019711,
+        "days_since_purchase": 9,
+        "months_since_purchase": 0.2956636005256242,
         "order_status": "delivered",
-        "total_order_value": 3377.99,
-        "item_over_500": true,
-        "item_value": 1599.99
+        "total_order_value": 449.0,
+        "item_value": 710,
+        "days_since_delivery": 3,
+        "tracking_status": "delivered",
+        "purchase_month": 5
       },
       "policy_interactions": "Multi-hop reasoning required"
     }
   },
   {
-    "ticket_id": "TK-20250802-6828",
-    "customer_email": "emily.chen@outlook.com",
-    "subject": "Defective iPhone 15 Pro Received in Order ORD-20250218-1008",
-    "body": "To Whom It May Concern,\n\nI am writing to report a problem with an item I received in order ORD-20250218-1008. I ordered it on February 18, 2025.\n\nThe iPhone 15 Pro Max I received is defective. The screen flickers constantly and sometimes doesn't respond to touch. I'm very frustrated that I received a defective product, especially considering the cost.\n\nI would like to request a return and a full refund or a replacement. Please let me know what steps I need to take to resolve this issue.\n\nThank you for your time and attention to this matter.\n\nSincerely,\nEmily Chen",
-    "timestamp": "2025-08-02T18:04:22.496000",
-    "customer_id": "CUST-3072",
-    "order_id": "ORD-20250218-1008",
+    "ticket_id": "TK-20250427-9774",
+    "customer_email": "jessica.brown@anotherdomain.net",
+    "subject": "Issue with my Universal USB-C Hub - Warranty Claim",
+    "body": "Dear Customer Support,\n\nI'm writing regarding an issue with the Universal USB-C Hub I ordered a couple weeks ago, on April 17, 2025. Unfortunately, there was an accident and the product seems to have been damaged.\n\nI'm quite frustrated about this, as I've only had it for a short time. I hope this issue is still covered under warranty. Could you please let me know what my options are for a replacement or repair?\n\nThank you for your help.\n\nSincerely,\nJessica Brown",
+    "timestamp": "2025-04-27T11:35:10",
+    "customer_id": "CUST-0007",
+    "order_id": "ORD-20250417-1007",
     "resolution_plan": {
-      "order_id": "ORD-20250218-1008",
-      "order_date": "2025-02-18",
+      "order_id": "ORD-20250417-1007",
+      "order_date": "2025-04-17",
       "customer_lookup": {
         "status": "found",
-        "customer_id": "CUST-3072",
+        "customer_id": "CUST-0007",
         "lookup_method": "email_match",
         "notes": "Customer found in database"
       },
       "policy_references": [
-        "POL-HOLIDAY-001"
+        "POL-WARRANTY-001",
+        "POL-WARRANTY-003"
       ],
-      "policy_reasoning": "The customer is reporting a defective iPhone 15 Pro Max. Although the standard return window of 30 days has passed, since it is a defective item the return can be processed.",
+      "policy_reasoning": "The customer is requesting a replacement or repair for a Universal USB-C Hub purchased on April 17, 2025, which was damaged due to an accident (liquid spill). While the product is within the 1-year manufacturer warranty period as per [POL-WARRANTY-001], the damage type is explicitly excluded from warranty coverage. [POL-WARRANTY-003] states that 'Physical damage, water damage, normal wear' are not covered under warranty. Therefore, the request for warranty coverage for water damage must be denied.",
       "actions": [
         {
-          "type": "request_photo",
-          "reason": "Item is over $500 and reported as damaged, we must request a photo to assess the damage. Per POL-SHIP-005, for damaged items over $500, a photo is required for verification.",
+          "type": "deny_warranty_claim",
+          "reason": "Warranty claim denied due to water damage, which is an exclusion explicitly stated in our warranty policy under [POL-WARRANTY-003].",
           "value": 0,
-          "details": "Request customer to provide a photo of the defective iPhone 15 Pro Max."
+          "details": "Product damage is due to water spill, which is not covered by the manufacturer's warranty."
         }
       ],
       "escalation_required": false,
       "escalation_reason": null,
-      "priority": "medium",
+      "priority": "low",
       "total_resolution_value": 0
     },
     "_scenario_dimensions": {
-      "query_type": "return_request",
-      "information_completeness": "incorrect_info",
+      "query_type": "warranty_claim",
+      "information_completeness": "minimal_details",
       "complexity": "requires_lookup",
-      "customer_sentiment": "neutral"
+      "customer_sentiment": "frustrated"
     },
     "_scenario_template": {
-      "scenario_id": "RETURN-003",
-      "name": "return_defective_item",
-      "primary_policy": "POL-RETURN-004",
+      "scenario_id": "WARRANTY-002",
+      "name": "water_damage_claim",
+      "primary_policy": "POL-WARRANTY-003",
       "complexity_level": 2,
-      "expected_outcome": "approve"
+      "expected_outcome": "deny"
     },
     "_policy_analysis": {
       "all_relevant_policies": [
-        "POL-RETURN-004",
-        "POL-RETURN-001",
-        "POL-RETURN-002",
-        "POL-RETURN-003",
-        "POL-HOLIDAY-001"
+        "POL-WARRANTY-003",
+        "POL-WARRANTY-001"
       ],
       "applicable_policies": [
-        "POL-HOLIDAY-001"
+        "POL-WARRANTY-003",
+        "POL-WARRANTY-001"
       ],
       "context_used": {
         "has_receipt": true,
         "customer_tier": "standard",
-        "days_since_purchase": 165,
-        "months_since_purchase": 5.4204993429697765,
+        "days_since_purchase": 10,
+        "months_since_purchase": 0.328515111695138,
         "order_status": "delivered",
-        "total_order_value": 1388.98,
-        "item_over_500": true,
-        "item_value": 1299.0
-      },
-      "policy_interactions": "Multi-hop reasoning required"
-    }
-  },
-  {
-    "ticket_id": "TK-20250802-3099",
-    "customer_email": "maria.rodriguez@gmail.com",
-    "subject": "Defective iPhone 15 Pro Max - Order ORD-20250515-1001",
-    "body": "Dear Customer Support,\n\nI am writing to complain about a defective iPhone 15 Pro Max that I purchased in order ORD-20250515-1001 on May 15, 2025. I was really hoping to enjoy this phone, but it's been nothing but trouble.\n\nI purchased this during a holiday promotion, and I understood that there was an extended return window for holiday purchases. The iPhone 15 Pro Max is not working correctly. It constantly freezes and restarts, and the camera is producing blurry images. I've tried all the troubleshooting steps I could find online, but nothing seems to fix the problem. \n\nGiven that this was a holiday purchase, I am hoping I can still return it for a full refund or exchange it for a working one. Please let me know what steps I need to take to resolve this issue. I've also included a Fire HD 8 Tablet in my order.\n\nThank you for your time and assistance.\n\nSincerely,\nMaria Rodriguez-Smith",
-    "timestamp": "2025-08-02T18:04:26.849466",
-    "customer_id": "CUST-2947",
-    "order_id": "ORD-20250515-1001",
-    "resolution_plan": {
-      "order_id": "ORD-20250515-1001",
-      "order_date": "2025-05-15",
-      "customer_lookup": {
-        "status": "found",
-        "customer_id": "CUST-2947",
-        "lookup_method": "email_match",
-        "notes": "Customer found in database"
-      },
-      "policy_references": [
-        "POL-HOLIDAY-001"
-      ],
-      "policy_reasoning": "The customer purchased the iPhone outside of the holiday purchase window specified in POL-HOLIDAY-001. Therefore, the standard return policy applies.",
-      "actions": [
-        {
-          "type": "request_photo",
-          "reason": "Per POL-SHIP-005, for damaged items valued over $500, a photo of the damage is required to assess the issue before processing a return or refund.",
-          "value": 0,
-          "details": "Requesting customer to provide a photo of the defective iPhone 15 Pro Max (PROD-2001) to assess the damage."
-        }
-      ],
-      "escalation_required": false,
-      "escalation_reason": null,
-      "priority": "medium",
-      "total_resolution_value": 0
-    },
-    "_scenario_dimensions": {
-      "query_type": "product_defect",
-      "information_completeness": "complete",
-      "complexity": "requires_lookup",
-      "customer_sentiment": "angry"
-    },
-    "_scenario_template": {
-      "scenario_id": "RETURN-005",
-      "name": "return_holiday_extended",
-      "primary_policy": "POL-HOLIDAY-001",
-      "complexity_level": 3,
-      "expected_outcome": "approve"
-    },
-    "_policy_analysis": {
-      "all_relevant_policies": [
-        "POL-HOLIDAY-001",
-        "POL-RETURN-001",
-        "POL-RETURN-002",
-        "POL-RETURN-003",
-        "POL-RETURN-004"
-      ],
-      "applicable_policies": [
-        "POL-HOLIDAY-001"
-      ],
-      "context_used": {
-        "has_receipt": true,
-        "customer_tier": "standard",
-        "days_since_purchase": 79,
-        "months_since_purchase": 2.59526938239159,
-        "order_status": "delivered",
-        "total_order_value": 1388.99,
-        "item_over_500": true,
-        "item_value": 1299.0
+        "total_order_value": 39.99,
+        "item_value": 39.99,
+        "damage_type": "water",
+        "purchase_month": 4
       },
       "policy_interactions": "Multi-hop reasoning required"
     }

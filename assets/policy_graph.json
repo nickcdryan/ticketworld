@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "total_clauses": 19,
-    "generated_at": "2025-08-02T18:04:26.855598",
+    "total_clauses": 22,
+    "generated_at": "2025-08-03T20:44:35.621905",
     "description": "Policy graph showing clause interactions for multi-hop reasoning"
   },
   "clauses": {
@@ -100,6 +100,45 @@
       },
       "total_connections": 2
     },
+    "POL-EXCHANGE-001": {
+      "title": "Exchange Window",
+      "rule": "Exchanges allowed within 30 days for same or higher value item. Customer pays price difference if applicable.",
+      "category": "Exchange Policy",
+      "precedence": 3,
+      "conditions": [
+        "within_return_window",
+        "receipt_required"
+      ],
+      "interactions": {
+        "interacts_with": [
+          "POL-RETURN-001"
+        ],
+        "modifies": [],
+        "modified_by": [],
+        "overrides": [],
+        "overridden_by": [],
+        "requires": []
+      },
+      "total_connections": 1
+    },
+    "POL-EXCHANGE-002": {
+      "title": "Defective Item Exchange",
+      "rule": "Defective items exchanged for same item at no cost. If same item unavailable, full refund or credit offered.",
+      "category": "Exchange Policy",
+      "precedence": 1,
+      "conditions": [],
+      "interactions": {
+        "interacts_with": [],
+        "modifies": [],
+        "modified_by": [],
+        "overrides": [
+          "POL-EXCHANGE-001"
+        ],
+        "overridden_by": [],
+        "requires": []
+      },
+      "total_connections": 1
+    },
     "POL-SHIP-001": {
       "title": "Shipping Costs",
       "rule": "Standard shipping (5-7 days): Free on orders over $50, otherwise $9.99",
@@ -152,7 +191,7 @@
     },
     "POL-SHIP-004": {
       "title": "Wrong Item Shipped",
-      "rule": "Wrong item shipped: Free return label provided, correct item sent immediately",
+      "rule": "Wrong item shipped: Free return label provided, correct item sent immediately. No time limit - this is merchant error.",
       "category": "Shipping Policy",
       "precedence": 2,
       "conditions": [],
@@ -382,6 +421,22 @@
         "requires": []
       },
       "total_connections": 0
+    },
+    "POL-INFO-001": {
+      "title": "Product Information Requests",
+      "rule": "Product availability, specifications, and pricing information provided upon request. Stock status subject to real-time availability.",
+      "category": "Product Information",
+      "precedence": 5,
+      "conditions": [],
+      "interactions": {
+        "interacts_with": [],
+        "modifies": [],
+        "modified_by": [],
+        "overrides": [],
+        "overridden_by": [],
+        "requires": []
+      },
+      "total_connections": 0
     }
   },
   "interaction_summary": {
@@ -423,6 +478,28 @@
         "POL-RETURN-002",
         "POL-RETURN-003",
         "POL-HOLIDAY-001"
+      ]
+    },
+    "POL-EXCHANGE-001": {
+      "direct_connections": 1,
+      "reachable_within_3_hops": 5,
+      "related_policies": [
+        "POL-RETURN-001",
+        "POL-RETURN-002",
+        "POL-RETURN-003",
+        "POL-RETURN-004",
+        "POL-HOLIDAY-001"
+      ]
+    },
+    "POL-EXCHANGE-002": {
+      "direct_connections": 1,
+      "reachable_within_3_hops": 6,
+      "related_policies": [
+        "POL-EXCHANGE-001",
+        "POL-RETURN-001",
+        "POL-RETURN-002",
+        "POL-RETURN-003",
+        "POL-RETURN-004"
       ]
     },
     "POL-SHIP-001": {
@@ -523,6 +600,11 @@
       "direct_connections": 0,
       "reachable_within_3_hops": 0,
       "related_policies": []
+    },
+    "POL-INFO-001": {
+      "direct_connections": 0,
+      "reachable_within_3_hops": 0,
+      "related_policies": []
     }
   },
   "complexity_analysis": {
@@ -530,6 +612,7 @@
       "3": [
         "POL-RETURN-001",
         "POL-RETURN-003",
+        "POL-EXCHANGE-001",
         "POL-SHIP-003",
         "POL-WARRANTY-001",
         "POL-WARRANTY-002",
@@ -543,11 +626,13 @@
         "POL-COMM-002"
       ],
       "1": [
-        "POL-RETURN-004"
+        "POL-RETURN-004",
+        "POL-EXCHANGE-002"
       ],
       "5": [
         "POL-SHIP-001",
-        "POL-COMM-001"
+        "POL-COMM-001",
+        "POL-INFO-001"
       ],
       "2": [
         "POL-SHIP-004",
@@ -559,14 +644,16 @@
     },
     "category_distribution": {
       "Return Policy": 4,
+      "Exchange Policy": 2,
       "Shipping Policy": 6,
       "Warranty Policy": 3,
       "Price Match Policy": 2,
       "Order Policy": 1,
       "Special Conditions": 1,
-      "Customer Service Standards": 2
+      "Customer Service Standards": 2,
+      "Product Information": 1
     },
-    "total_unique_interactions": 13,
+    "total_unique_interactions": 14,
     "max_precedence": 5,
     "min_precedence": 1
   }

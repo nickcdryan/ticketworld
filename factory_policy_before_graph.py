@@ -86,7 +86,7 @@ class PolicyGraph:
         self.clauses: Dict[str, PolicyClause] = {}
         self.interactions: List[PolicyInteraction] = []
         self.nx_graph: nx.Graph = nx.Graph()  # NetworkX graph for analysis
-        
+    
     def add_clause(self, clause: PolicyClause):
         """Add a policy clause to the graph"""
         self.clauses[clause.clause_id] = clause
@@ -128,7 +128,7 @@ class PolicyGraph:
                         related.append(node)
                 except nx.NetworkXNoPath:
                     # No path exists
-                    continue
+                continue
         
         return related
     
@@ -1128,7 +1128,7 @@ def generate_orders(config: DatasetConfig, customers: List[Dict], products: List
 
 
 def select_and_customize_scenario_v2(policy_graph: PolicyGraph, scenario_templates: Dict[str, List[ScenarioTemplate]], 
-                                   query_type: str, order: Dict, customer: Dict, products: List[Dict]) -> Dict:
+                                 query_type: str, order: Dict, customer: Dict, products: List[Dict]) -> Dict:
     """Select and customize a scenario template with LLM-based policy graph integration."""
     
     # Get templates for this query type
@@ -1785,7 +1785,7 @@ def main(config: DatasetConfig):
                 for interaction in interactions:
                     policy_graph.add_interaction(interaction)
                 
-                scenario_templates = create_scenario_templates()
+            scenario_templates = create_scenario_templates()
                 print(f"✓ Recreated policy graph with {len(policy_graph.clauses)} clauses and {len(interactions)} interactions")
             except Exception as e:
                 print(f"ERROR: Failed to recreate policy graph: {e}")
@@ -1891,7 +1891,7 @@ def main(config: DatasetConfig):
         
         # Select and customize scenario template with LLM-based policy graph
         scenario = select_and_customize_scenario_v2(policy_graph, scenario_templates, 
-                                                   dimensions['query_type'], order, customer, order_products)
+                                                dimensions['query_type'], order, customer, order_products)
         print(f"  Scenario: {scenario['name']} (complexity {scenario['complexity_level']})")
         print(f"  Primary policy: {scenario['primary_policy']}")
         print(f"  Applicable policies: {scenario['applicable_policies']}")
