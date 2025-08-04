@@ -1,125 +1,258 @@
-# Synthetic Customer Service Data Generator
+# TicketWorld: Synthetic Customer Service Dataset Generator
 
-A comprehensive Python tool that generates realistic customer service datasets for testing and evaluating LLM systems. Creates authentic customer support scenarios with interconnected databases, policy documents, and resolution plans.
+A Python tool that generates realistic customer service datasets and environment for training and evaluating LLM systems. Creates customer support scenarios with interconnected databases, policy documents, and resolution plans.
 
-## What It Does
+## 🎯 Project Goals
 
-This generator creates a complete customer service ecosystem including:
+**TicketWorld** generates synthetic customer service data that challenges LLM systems with:
 
-- **Realistic Support Tickets**: Varied complexity levels from simple requests to complex multi-step issues
-- **Customer Database**: Interconnected customer profiles with transaction histories and tier status
-- **Order Database**: Realistic e-commerce transactions with edge cases (shipping errors, defects, etc.)
-- **Company Policy Document**: 2000+ word policy with both relevant and irrelevant sections
-- **Resolution Plans**: Policy-compliant solutions that reference specific policy sections
+- **Multi-hop policy reasoning**: Tickets require understanding interactions between multiple company policies
+- **Tool use and effecitve lookup**: For all tickets, access to customer information, product information, order information, and company policy document is required to create an accurate resolution. These assets are stored separately in a database and standalone .txt file, requiring effective multi-hop queries and search.
+- **Realistic customer scenarios**: Edge cases, partial information, and complex situations
+- **Policy compliance validation**: Resolutions must reference and apply specific policy clauses
+- **Authentic data relationships**: Customers, orders, and products with realistic transaction histories
 
-## What It Generates
+## 🏗️ How Tickets Are Generated
 
-The system outputs two main files:
+The system uses a **carefully orchestrated synthetic data pipeline** that respects asset dependencies and provides targeted information access:
 
-### `full_customer_service_dataset.json`
-Complete dataset containing:
-- Company policy document (~2000 words)
-- Customer database with tiered accounts (standard/premium/VIP)
-- Order database with realistic transaction history
-- Support tickets with resolution plans
+1. **Policy Graph Creation**: Company policies are modeled as interconnected clauses with relationships (overrides, modifies, requires)
+2. **Scenario Templates**: Pre-built templates define customer situations (returns, exchanges, warranty claims, etc.) with varying conditions that require combining and reasoning over multiple policy rules
+3. **Asset Generation Pipeline**: 
+   - Generate **customers** with realistic profiles and contact information
+   - Generate **products** with pricing, categories, and specifications
+   - Generate **orders** using both customers and products, creating authentic transaction relationships
+4. **Email Generation**: Using scenario templates and specific customer/order context, LLM creates customer emails from the customer's perspective
+5. **Resolution Generation**: Using all previous assets plus metadata, LLM acts as customer service rep to create policy-compliant resolutions
 
-### `customer_service_evaluation.json` 
-Format optimized for evaluation systems with:
-- Structured question-answer pairs
-- Complete context for each ticket
-- Expected resolution plans for validation
+**The Key Innovation**: This synthetic data pipeline addresses the core challenge of generating high-quality datasets that nevertheless remains difficult for LLMs to solve. During generation, we provide **targeted information access** (specific customer records, relevant policies) and **deterministic metadata** to ensure consistency and minimize hallucination. However, during evaluation, these scaffolds are removed - the LLM must accurately retrieve information from large databases and reason over numerous possibly irrelevant pieces of data.
 
-## Key Features
+This approach generates datasets with **minimal errors** and **maximum consistency** while creating genuinely challenging multi-hop reasoning scenarios that require effective tool use and lookup capabilities.
 
-- **Realistic Edge Cases**: Wrong emails, missing information, partial customer matches
-- **Policy Compliance**: All resolutions reference specific policy sections and authorization levels
-- **Varied Complexity**: Simple requests to complex multi-step resolutions requiring escalation
-- **Database Relationships**: Customers properly linked to orders with realistic transaction patterns
-- **Comprehensive Policy**: Detailed policy document with relevant sections mixed with noise
-- **Multi-Step Challenge**: Requires information extraction, database lookup, policy search, business logic application, and structured response generation
+## 🚀 Setup & Installation
 
-## Installation & Setup
+### Prerequisites
 
-This project uses [uv](https://docs.astral.sh/uv/) for dependency management.
+- Python 3.11+
+- [uv](https://docs.astral.sh/uv/) for dependency management
+- Google Gemini API access
+
+### Installation
 
 ```bash
+# Clone the repository
+cd ticketworld
+
 # Install dependencies
 uv sync
 
-# Set up your API key
-export GEMINI_API_KEY="your-api-key-here"
+# Set up environment variables
+cp .env.example .env  # Create this file
 ```
 
-## Usage Instructions
+### Environment Configuration
 
-1. **Configure the LLM function**: The `call_llm()` function is already configured for Google Gemini API. Update it with your preferred LLM provider if needed.
+Create a `.env` file in the project root:
 
-2. **Run the generator**:
 ```bash
+# Required: Google Gemini API key
+GEMINI_API_KEY=your-gemini-api-key-here
+```
+
+Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
+
+## 📋 Usage
+
+### Basic Usage
+
+Generate a dataset with default settings:
+
+```bash
+# Run with test configuration (100 tickets, 50 customers, 35 products, 70 orders)
 uv run python factory.py
 ```
 
-3. **Adjust parameters as needed**:
-```python
-dataset = generator.generate_complete_dataset(
-    num_customers=100,    # 50-200 recommended
-    num_tickets=200,      # 100-500 recommended
-)
+### Custom Configuration
+
+```bash
+# Generate larger dataset
+uv run python factory.py --tickets 500 --customers 200 --products 100 --orders 300
+
+# Append to existing dataset
+uv run python factory.py --mode append --tickets 100
+
+# Custom output directory
+uv run python factory.py --output-dir ./my_dataset --tickets 200
+
+# Exclude debug metadata (for clean training data)
+uv run python factory.py --no-debug --tickets 1000
 ```
 
-4. **Set random seed** for reproducible datasets:
-```python
-generator = CustomerServiceDataGenerator(seed=42)
+### Complete Workflow
+
+For a full dataset with all enhancements:
+
+```bash
+# 1. Generate core dataset
+uv run python factory.py --tickets 500 --customers 200
+
+# 2. Add policy dilution (makes policy document more realistic)
+uv run python utils/policy_dilution_script.py
+
+# 3. Convert to SQLite for easier querying
+uv run python utils/convert_to_sqlite.py
 ```
 
-## Configuration Options
+## 🛠️ Utilities (`utils/` directory)
 
-| Parameter | Description | Recommended Range |
-|-----------|-------------|-------------------|
-| `num_customers` | Total customers to generate | 50-200 |
-| `num_tickets` | Total support tickets to generate | 100-500 |
-| `seed` | Random seed for reproducible results | Any integer |
+### Core Workflow Utils
 
-## Dataset Structure
+| Script | Purpose | When to Run |
+|--------|---------|-------------|
+| `policy_dilution_script.py` | Adds irrelevant content to policy document to simulate real-world policy complexity | After factory.py |
+| `convert_to_sqlite.py` | Converts JSON customer database to SQLite for easier querying and analysis | After factory.py |
 
-### Ticket Categories
-- **Shipping Errors** (25%): Wrong items, damaged packages, delivery issues
-- **Billing Disputes** (20%): Unexpected charges, incorrect amounts
-- **Product Defects** (20%): Manufacturing issues, quality problems
-- **Refund Requests** (15%): Returns, cancellations
-- **Account Issues** (10%): Login problems, security concerns
-- **Technical Support** (10%): How-to questions, compatibility issues
+### Development & Analysis Utils
 
-### Information Completeness Levels
-- **Complete** (40%): Full customer info (email + order + name)
-- **Partial** (35%): Missing some details (email + order OR email + name)
-- **Minimal** (20%): Basic info only (just email)
-- **Insufficient** (5%): Wrong/missing info requiring follow-up
+| Script | Purpose | Use Case |
+|--------|---------|----------|
+| `audit_tickets.py` | Reviews generated tickets for policy compliance and errors | Quality assurance, debugging |
+| `validate_templates.py` | Analyzes scenario templates and discovers policy interactions | Template development, validation |
 
-### Customer Tiers
-- **Standard** (70%): Basic support, standard policies
-- **Premium** (20%): Priority support, extended returns
-- **VIP** (10%): Dedicated support, manager escalation privileges
+### Running Utilities
 
-## Use Cases
+```bash
+# Add policy dilution
+cd utils && python policy_dilution_script.py
 
-Perfect for testing LLM systems that need to:
-- Handle multi-step customer service workflows
-- Perform database lookups with partial information
-- Apply business rules and policies consistently
-- Manage escalation procedures
-- Generate structured responses
-- Deal with edge cases and missing information
+# Convert to SQLite
+cd utils && python convert_to_sqlite.py
 
-## Example Output
+# Audit ticket quality (optional)
+cd utils && python audit_tickets.py
 
-The generated dataset creates challenging scenarios like:
-- Customer emails from different addresses than their account
-- Partial order numbers with missing digits
-- Complex issues requiring manager-level authorization
-- Policy boundary testing (return windows, refund limits)
-- Cross-referenced customer and order data validation
+# Validate templates (development tool)
+cd utils && python validate_templates.py
+```
+
+## 📁 Generated Assets
+
+After running the factory, the `assets/` directory contains:
+
+### Core Dataset Files
+
+| File | Description | Size (typical) |
+|------|-------------|----------------|
+| `support_tickets.json` | Complete ticket dataset with customer emails and resolutions | ~350KB (100 tickets) |
+| `customer_database.json` | Customer profiles, orders, and product catalog | ~80KB (50 customers) |
+| `company_policy.txt` | Clean company policy document | ~3KB |
+
+### Enhanced Files (after utils)
+
+| File | Description | Generated By |
+|------|-------------|--------------|
+| `company_policy_full.txt` | Policy document with realistic dilution content | `policy_dilution_script.py` |
+| `customer_database.db` | SQLite version of customer database | `convert_to_sqlite.py` |
+
+### Analysis Files
+
+| File | Description | Contents |
+|------|-------------|----------|
+| `policy_graph.json` | Policy interaction structure and metadata | Policy relationships, complexity analysis |
+| `ticket_audit_results.json` | Quality analysis of generated tickets | Compliance scores, error detection |
+| `ticket_audit_report.txt` | Human-readable audit summary | Policy violations, recommendations |
+
+## 🎛️ Configuration Options
+
+### Factory Parameters
+
+```bash
+--tickets N          # Number of tickets to generate (default: 100)
+--customers N        # Number of customers (default: 50)  
+--products N         # Number of products (default: 35)
+--orders N           # Number of orders (default: 70)
+--mode MODE          # "create" or "append" (default: create)
+--output-dir DIR     # Output directory (default: ./assets)
+--company-name NAME  # Company name for policies (default: TechNest)
+--no-debug          # Exclude debug metadata for clean training data
+```
+
+### Dataset Composition
+
+The generator creates realistic distributions:
+
+- **Ticket Types**: Returns (25%), Shipping Issues (20%), Billing Disputes (20%), Warranty Claims (15%), etc.
+- **Complexity Levels**: Simple (40%), Requires Lookup (35%), Edge Cases (20%), Escalation Required (5%)
+- **Customer Tiers**: Standard (70%), Premium (20%), VIP (10%)
+- **Information Completeness**: Complete (30%), Missing Details (40%), Wrong Info (30%)
+
+## 🎯 Use Cases
+
+### LLM Training & Evaluation
+
+- **Policy Reasoning**: Test multi-hop policy application
+- **Customer Service**: Train on realistic support scenarios  
+- **Edge Case Handling**: Challenge models with incomplete information
+- **Business Logic**: Validate understanding of complex rules
+
+### Dataset Analysis
+
+```python
+import json
+
+# Load tickets
+with open('assets/support_tickets.json') as f:
+    tickets = json.load(f)
+
+# Analyze policy complexity
+complex_tickets = [t for t in tickets if len(t['_policy_analysis']['applicable_policies']) > 2]
+print(f"Multi-policy tickets: {len(complex_tickets)}")
+```
+
+### SQL Querying (after SQLite conversion)
+
+```sql
+-- Find high-value orders with issues
+SELECT c.name, o.order_id, o.total_amount 
+FROM customers c 
+JOIN orders o ON c.customer_id = o.customer_id 
+WHERE o.total_amount > 500;
+
+-- Customer purchase patterns
+SELECT customer_id, COUNT(*) as order_count, AVG(total_amount) as avg_order
+FROM orders 
+GROUP BY customer_id 
+ORDER BY order_count DESC;
+```
+
+## 📊 Quality Features
+
+- **Policy Compliance**: All resolutions reference specific policy clauses
+- **Realistic Timing**: Email timestamps align with customer descriptions ("last week", "a few months ago")
+- **Data Consistency**: Customer/order relationships are maintained across all tickets
+- **Edge Cases**: Wrong emails, missing information, partial customer matches
+- **Multi-hop Reasoning**: Complex scenarios requiring multiple policy interactions
+
+## 🔧 Development
+
+### Adding New Scenarios
+
+1. Edit scenario templates in `factory.py` (`create_scenario_templates()`)
+2. Run `utils/validate_templates.py` to discover policy interactions
+3. Test with `utils/audit_tickets.py` for compliance
+
+### Extending Policies
+
+1. Add new policy clauses in `create_policy_graph()` 
+2. Define relationships (overrides, modifies, requires)
+3. Update scenario templates to reference new policies
+
+## 📈 Performance
+
+- **Generation Speed**: ~1-2 tickets/second (depends on LLM response time)
+- **Memory Usage**: ~100MB for typical datasets
+- **Output Size**: ~5MB for 1000 tickets with full metadata
 
 ---
 
-*Generated datasets provide comprehensive testing environments for customer service AI systems, ensuring robust handling of real-world complexity and edge cases.*
+*TicketWorld creates comprehensive testing environments for customer service AI systems, ensuring robust handling of real-world complexity and multi-policy reasoning scenarios.*

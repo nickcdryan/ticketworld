@@ -253,8 +253,8 @@ def insert_sections_strategically(original_content, irrelevant_sections):
 
 def main():
     """Main function to process the policy file."""
-    input_file = Path("assets/company_policy.txt")
-    output_file = Path("assets/company_policy_full.txt")
+    input_file = Path("../assets/company_policy.txt")
+    output_file = Path("../assets/company_policy_full.txt")
     
     if not input_file.exists():
         print(f"Error: {input_file} not found!")

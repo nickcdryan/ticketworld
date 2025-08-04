@@ -9,8 +9,8 @@ import sys
 from datetime import datetime
 from typing import Dict, List, Any
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from factory_3 import call_llm, safe_json_parse, DatasetConfig
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from factory import call_llm, safe_json_parse, DatasetConfig
 
 def load_tickets(filepath: str) -> List[Dict]:
     """Load tickets from JSON file"""

@@ -1,14 +1,14 @@
 """
 One-time validation script to analyze scenario templates and update them with 
-discovered policy interactions. Outputs Python code ready to paste into factory_3.py.
+discovered policy interactions. Outputs Python code ready to paste into factory.py.
 """
 
 import json
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from factory_3 import (
+from factory import (
     PolicyGraph, create_policy_graph, create_scenario_templates, 
     DatasetConfig, call_llm, safe_json_parse, ScenarioTemplate
 )
@@ -165,7 +165,7 @@ def generate_python_code(updated_templates: Dict):
     """Generate Python code for updated templates"""
     
     print("\n=== UPDATED TEMPLATE CODE ===")
-    print("Copy and paste this into factory_3.py:\n")
+    print("Copy and paste this into factory.py:\n")
     print("-" * 80)
     
     print("""def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
@@ -235,7 +235,7 @@ def generate_python_code(updated_templates: Dict):
     return templates""")
     
     print("-" * 80)
-    print("\nValidation complete! Copy the code above to replace create_scenario_templates() in factory_3.py")
+    print("\nValidation complete! Copy the code above to replace create_scenario_templates() in factory.py")
 
 if __name__ == "__main__":
     validate_and_update_templates() 

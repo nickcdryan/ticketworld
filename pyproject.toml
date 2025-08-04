@@ -1,7 +1,7 @@
 [project]
 name = "ticketworld"
 version = "0.1.0"
-description = "Add your description here"
+description = "Synthetic customer service dataset generator for training and evaluating LLM systems"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

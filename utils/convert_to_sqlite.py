@@ -259,8 +259,8 @@ def insert_orders(cursor, orders_data):
 def main():
     """Main function to convert JSON to SQLite database."""
     # Input and output file paths
-    json_file = 'assets/customer_database.json'
-    db_file = 'assets/customer_database.db'
+    json_file = '../assets/customer_database.json'
+    db_file = '../assets/customer_database.db'
     
     # Check if input file exists
     if not os.path.exists(json_file):
