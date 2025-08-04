@@ -22,7 +22,7 @@ The system uses a **carefully orchestrated synthetic data pipeline** that respec
    - Generate **customers** with realistic profiles and contact information
    - Generate **products** with pricing, categories, and specifications
    - Generate **orders** using both customers and products, creating authentic transaction relationships
-4. **Email Generation**: Using scenario templates and specific customer/order context, LLM creates customer emails from the customer's perspective
+4. **Email Generation**: Using scenario templates and specific customer/order context, LLM creates customer emails from the customer's perspective. Emails are **realistic** due to varying levels of information provided by the customer: missing order numbers, misspelled order numbers, emails sent from secondary email address, etc. requiring database lookups, best-guess inference, or followup clarification requests.
 5. **Resolution Generation**: Using all previous assets plus metadata, LLM acts as customer service rep to create policy-compliant resolutions
 
 **The Key Innovation**: This synthetic data pipeline addresses the core challenge of generating high-quality datasets that nevertheless remains difficult for LLMs to solve. During generation, we provide **targeted information access** (specific customer records, relevant policies) and **deterministic metadata** to ensure consistency and minimize hallucination. However, during evaluation, these scaffolds are removed - the LLM must accurately retrieve information from large databases and reason over numerous possibly irrelevant pieces of data.
