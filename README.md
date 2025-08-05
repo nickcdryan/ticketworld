@@ -1,6 +1,6 @@
 # TicketWorld: Synthetic Customer Service Dataset Generator
 
-A Python tool that generates realistic customer service datasets and environment for training and evaluating LLM systems. Creates customer support scenarios with interconnected databases, policy documents, and resolution plans.
+TicketWorld generates realistic customer service datasets and environments for training and evaluating LLM systems. Creates customer support scenarios with interconnected databases, policy documents, and resolution plans.
 
 ![TicketWorld System Overview](ticketworld_diagram.png)
 
