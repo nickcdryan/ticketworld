@@ -2,6 +2,8 @@
 
 A Python tool that generates realistic customer service datasets and environment for training and evaluating LLM systems. Creates customer support scenarios with interconnected databases, policy documents, and resolution plans.
 
+![TicketWorld System Overview](ticketworld_diagram.png)
+
 ## 🎯 Project Goals
 
 **TicketWorld** generates synthetic customer service data that challenges LLM systems with:
