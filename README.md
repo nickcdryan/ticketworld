@@ -31,6 +31,10 @@ The system uses a **carefully orchestrated synthetic data pipeline** that respec
 
 This approach generates datasets with **minimal errors** and **maximum consistency** while creating genuinely challenging multi-hop reasoning scenarios that require effective tool use and lookup capabilities.
 
+In addition, this setup allows for the generation of new, fresh batches of ticket data. This helps mitigate overfitting, data contaimnation, and staleness often seen on static train and test sets, similar to [FreshStack](https://fresh-stack.github.io/). 
+
+
+
 ## 🚀 Setup & Installation
 
 ### Prerequisites

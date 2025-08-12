@@ -99,7 +99,6 @@ You have access to these files located at datasets/ticketworld/:
 - provide_tracking
 - honor_warranty
 - escalate_to_manager
-- request_more_info
 - request_photo
 - update_shipping_address
 - cancel_order
@@ -109,11 +108,12 @@ You have access to these files located at datasets/ticketworld/:
 - deny_price_match
 - deny_order_modification
 - deny_cancellation
-- provide_information
+- provide_product_information
 - initiate_investigation
 - process_exchange
 - deny_exchange
-- send_return_label
+- honor_price_match
+- accept_order_modification
 
 ### Priority Levels
 - low

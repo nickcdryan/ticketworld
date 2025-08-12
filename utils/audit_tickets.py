@@ -234,7 +234,9 @@ def generate_audit_report(audit_results: List[Dict], output_path: str):
 
 def main():
     """Main audit function"""
-    config = DatasetConfig()
+    # Set output_dir to the project root assets directory
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    config = DatasetConfig(output_dir=os.path.join(project_root, "assets"))
     
     # Load tickets
     tickets_path = config.get_filepath(config.tickets_file)

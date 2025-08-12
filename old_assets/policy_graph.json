@@ -1,7 +1,7 @@
 {
   "metadata": {
     "total_clauses": 22,
-    "generated_at": "2025-08-12T11:27:22.978582",
+    "generated_at": "2025-08-04T10:19:10.276264",
     "description": "Policy graph showing clause interactions for multi-hop reasoning"
   },
   "clauses": {
@@ -11,7 +11,8 @@
       "category": "Return Policy",
       "precedence": 3,
       "conditions": [
-        "within_return_window"
+        "within_return_window",
+        "receipt_required"
       ],
       "interactions": {
         "interacts_with": [
@@ -31,7 +32,7 @@
     },
     "POL-RETURN-002": {
       "title": "Restocking Fee",
-      "rule": "Opened items: 15% restocking fee applies. If item is defective, no restocking fee.",
+      "rule": "Opened items: 15% restocking fee applies unless item is defective",
       "category": "Return Policy",
       "precedence": 4,
       "conditions": [
@@ -105,21 +106,20 @@
       "category": "Exchange Policy",
       "precedence": 3,
       "conditions": [
-        "within_return_window"
+        "within_return_window",
+        "receipt_required"
       ],
       "interactions": {
         "interacts_with": [
           "POL-RETURN-001"
         ],
         "modifies": [],
-        "modified_by": [
-          "POL-HOLIDAY-001"
-        ],
+        "modified_by": [],
         "overrides": [],
         "overridden_by": [],
         "requires": []
       },
-      "total_connections": 2
+      "total_connections": 1
     },
     "POL-EXCHANGE-002": {
       "title": "Defective Item Exchange",
@@ -134,26 +134,6 @@
         "overrides": [
           "POL-EXCHANGE-001"
         ],
-        "overridden_by": [],
-        "requires": []
-      },
-      "total_connections": 1
-    },
-    "POL-EXCHANGE-003": {
-      "title": "Opened Item Exchange",
-      "rule": "Opened items: 15% restocking fee applies for exchange. If item is defective, no restocking fee.",
-      "category": "Exchange Policy",
-      "precedence": 3,
-      "conditions": [
-        "within_return_window"
-      ],
-      "interactions": {
-        "interacts_with": [
-          "POL-RETURN-001"
-        ],
-        "modifies": [],
-        "modified_by": [],
-        "overrides": [],
         "overridden_by": [],
         "requires": []
       },
@@ -211,7 +191,7 @@
     },
     "POL-SHIP-004": {
       "title": "Wrong Item Shipped",
-      "rule": "Wrong item shipped: Free return, no restocking fee, correct item sent immediately.",
+      "rule": "Wrong item shipped: Free return label provided, correct item sent immediately. No time limit - this is merchant error.",
       "category": "Shipping Policy",
       "precedence": 2,
       "conditions": [],
@@ -234,10 +214,7 @@
         "item_over_500"
       ],
       "interactions": {
-        "interacts_with": [
-          "POL-SHIP-006",
-          "POL-RETURN-004"
-        ],
+        "interacts_with": [],
         "modifies": [
           "POL-SHIP-006"
         ],
@@ -246,7 +223,7 @@
         "overridden_by": [],
         "requires": []
       },
-      "total_connections": 3
+      "total_connections": 1
     },
     "POL-SHIP-006": {
       "title": "Damage Claims Standard",
@@ -255,10 +232,7 @@
       "precedence": 4,
       "conditions": [],
       "interactions": {
-        "interacts_with": [
-          "POL-SHIP-005",
-          "POL-RETURN-004"
-        ],
+        "interacts_with": [],
         "modifies": [],
         "modified_by": [
           "POL-SHIP-005"
@@ -267,11 +241,11 @@
         "overridden_by": [],
         "requires": []
       },
-      "total_connections": 3
+      "total_connections": 1
     },
     "POL-WARRANTY-001": {
       "title": "Warranty Period",
-      "rule": "Warranty period listed directly in product information.",
+      "rule": "Manufacturer warranty: 1 year from purchase date. No warranty service after 1 year",
       "category": "Warranty Policy",
       "precedence": 3,
       "conditions": [
@@ -292,7 +266,7 @@
     },
     "POL-WARRANTY-002": {
       "title": "Manufacturing Defects",
-      "rule": "Covered under warranty: manufacturing defects only",
+      "rule": "Defects covered: Manufacturing defects only",
       "category": "Warranty Policy",
       "precedence": 3,
       "conditions": [
@@ -315,7 +289,7 @@
     },
     "POL-WARRANTY-003": {
       "title": "Warranty Exclusions",
-      "rule": "Not covered under warranty: physical damage, water damage, normal wear",
+      "rule": "Not covered: Physical damage, water damage, normal wear",
       "category": "Warranty Policy",
       "precedence": 2,
       "conditions": [
@@ -360,7 +334,7 @@
     },
     "POL-PRICE-002": {
       "title": "Price Match Exclusions",
-      "rule": "Price Match Exclusions: Marketplace sellers, clearance items, and bundles",
+      "rule": "Exclusions: Marketplace sellers, clearance items, bundles",
       "category": "Price Match Policy",
       "precedence": 2,
       "conditions": [],
@@ -383,7 +357,9 @@
       "rule": "Changes allowed: Within 2 hours of order placement. After 2 hours: Order cannot be modified",
       "category": "Order Policy",
       "precedence": 3,
-      "conditions": [],
+      "conditions": [
+        "order_not_shipped"
+      ],
       "interactions": {
         "interacts_with": [],
         "modifies": [],
@@ -396,28 +372,43 @@
     },
     "POL-HOLIDAY-001": {
       "title": "Holiday Extension",
-      "rule": "Holiday purchases: Return and exchange window extended to 45 days for purchases made November 1 - December 31",
+      "rule": "Holiday purchases: Return window extended to 45 days for purchases made November 1 - December 31",
       "category": "Special Conditions",
       "precedence": 2,
       "conditions": [],
       "interactions": {
         "interacts_with": [],
         "modifies": [
-          "POL-RETURN-001",
-          "POL-EXCHANGE-001"
+          "POL-RETURN-001"
         ],
         "modified_by": [],
         "overrides": [],
         "overridden_by": [],
         "requires": []
       },
-      "total_connections": 2
+      "total_connections": 1
+    },
+    "POL-COMM-001": {
+      "title": "Response Time",
+      "rule": "Response time: Within 24 hours",
+      "category": "Customer Service Standards",
+      "precedence": 5,
+      "conditions": [],
+      "interactions": {
+        "interacts_with": [],
+        "modifies": [],
+        "modified_by": [],
+        "overrides": [],
+        "overridden_by": [],
+        "requires": []
+      },
+      "total_connections": 0
     },
     "POL-COMM-002": {
-      "title": "High Value Escalation",
-      "rule": "High-value escalation: Available for orders over $1000 or individual items over $500",
+      "title": "Escalation",
+      "rule": "Escalation: Available for orders over $1000",
       "category": "Customer Service Standards",
-      "precedence": 3,
+      "precedence": 4,
       "conditions": [
         "item_over_500"
       ],
@@ -451,57 +442,53 @@
   "interaction_summary": {
     "POL-RETURN-001": {
       "direct_connections": 4,
-      "reachable_within_3_hops": 5,
+      "reachable_within_3_hops": 4,
       "related_policies": [
         "POL-RETURN-002",
         "POL-RETURN-003",
         "POL-RETURN-004",
-        "POL-HOLIDAY-001",
-        "POL-EXCHANGE-001"
+        "POL-HOLIDAY-001"
       ]
     },
     "POL-RETURN-002": {
       "direct_connections": 4,
-      "reachable_within_3_hops": 5,
+      "reachable_within_3_hops": 4,
       "related_policies": [
         "POL-RETURN-001",
         "POL-RETURN-003",
         "POL-RETURN-004",
-        "POL-HOLIDAY-001",
-        "POL-EXCHANGE-001"
+        "POL-HOLIDAY-001"
       ]
     },
     "POL-RETURN-003": {
       "direct_connections": 3,
-      "reachable_within_3_hops": 5,
+      "reachable_within_3_hops": 4,
       "related_policies": [
         "POL-RETURN-001",
         "POL-RETURN-002",
         "POL-RETURN-004",
-        "POL-HOLIDAY-001",
-        "POL-EXCHANGE-001"
+        "POL-HOLIDAY-001"
       ]
     },
     "POL-RETURN-004": {
       "direct_connections": 2,
-      "reachable_within_3_hops": 5,
+      "reachable_within_3_hops": 4,
       "related_policies": [
         "POL-RETURN-001",
         "POL-RETURN-002",
         "POL-RETURN-003",
-        "POL-HOLIDAY-001",
-        "POL-EXCHANGE-001"
+        "POL-HOLIDAY-001"
       ]
     },
     "POL-EXCHANGE-001": {
-      "direct_connections": 2,
+      "direct_connections": 1,
       "reachable_within_3_hops": 5,
       "related_policies": [
         "POL-RETURN-001",
-        "POL-HOLIDAY-001",
         "POL-RETURN-002",
         "POL-RETURN-003",
-        "POL-RETURN-004"
+        "POL-RETURN-004",
+        "POL-HOLIDAY-001"
       ]
     },
     "POL-EXCHANGE-002": {
@@ -510,20 +497,9 @@
       "related_policies": [
         "POL-EXCHANGE-001",
         "POL-RETURN-001",
-        "POL-HOLIDAY-001",
-        "POL-RETURN-002",
-        "POL-RETURN-003"
-      ]
-    },
-    "POL-EXCHANGE-003": {
-      "direct_connections": 1,
-      "reachable_within_3_hops": 6,
-      "related_policies": [
-        "POL-RETURN-001",
         "POL-RETURN-002",
         "POL-RETURN-003",
-        "POL-RETURN-004",
-        "POL-HOLIDAY-001"
+        "POL-RETURN-004"
       ]
     },
     "POL-SHIP-001": {
@@ -549,25 +525,17 @@
       "related_policies": []
     },
     "POL-SHIP-005": {
-      "direct_connections": 3,
-      "reachable_within_3_hops": 6,
+      "direct_connections": 1,
+      "reachable_within_3_hops": 1,
       "related_policies": [
-        "POL-SHIP-006",
-        "POL-RETURN-004",
-        "POL-RETURN-001",
-        "POL-RETURN-002",
-        "POL-RETURN-003"
+        "POL-SHIP-006"
       ]
     },
     "POL-SHIP-006": {
-      "direct_connections": 3,
-      "reachable_within_3_hops": 6,
+      "direct_connections": 1,
+      "reachable_within_3_hops": 1,
       "related_policies": [
-        "POL-SHIP-005",
-        "POL-RETURN-004",
-        "POL-RETURN-001",
-        "POL-RETURN-002",
-        "POL-RETURN-003"
+        "POL-SHIP-005"
       ]
     },
     "POL-WARRANTY-001": {
@@ -614,15 +582,19 @@
       "related_policies": []
     },
     "POL-HOLIDAY-001": {
-      "direct_connections": 2,
-      "reachable_within_3_hops": 5,
+      "direct_connections": 1,
+      "reachable_within_3_hops": 4,
       "related_policies": [
         "POL-RETURN-001",
-        "POL-EXCHANGE-001",
         "POL-RETURN-002",
         "POL-RETURN-003",
         "POL-RETURN-004"
       ]
+    },
+    "POL-COMM-001": {
+      "direct_connections": 0,
+      "reachable_within_3_hops": 0,
+      "related_policies": []
     },
     "POL-COMM-002": {
       "direct_connections": 0,
@@ -641,18 +613,17 @@
         "POL-RETURN-001",
         "POL-RETURN-003",
         "POL-EXCHANGE-001",
-        "POL-EXCHANGE-003",
         "POL-SHIP-003",
         "POL-WARRANTY-001",
         "POL-WARRANTY-002",
         "POL-PRICE-001",
-        "POL-ORDER-001",
-        "POL-COMM-002"
+        "POL-ORDER-001"
       ],
       "4": [
         "POL-RETURN-002",
         "POL-SHIP-002",
-        "POL-SHIP-006"
+        "POL-SHIP-006",
+        "POL-COMM-002"
       ],
       "1": [
         "POL-RETURN-004",
@@ -660,6 +631,7 @@
       ],
       "5": [
         "POL-SHIP-001",
+        "POL-COMM-001",
         "POL-INFO-001"
       ],
       "2": [
@@ -672,13 +644,13 @@
     },
     "category_distribution": {
       "Return Policy": 4,
-      "Exchange Policy": 3,
+      "Exchange Policy": 2,
       "Shipping Policy": 6,
       "Warranty Policy": 3,
       "Price Match Policy": 2,
       "Order Policy": 1,
       "Special Conditions": 1,
-      "Customer Service Standards": 1,
+      "Customer Service Standards": 2,
       "Product Information": 1
     },
     "total_unique_interactions": 14,

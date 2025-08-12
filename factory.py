@@ -157,8 +157,12 @@ class PolicyGraph:
                 return False
             elif condition == "item_over_500" and context.get("item_value", 0) <= 500:
                 return False
-            elif condition == "warranty_period" and context.get("months_since_purchase", 0) > 12:
-                return False
+            elif condition == "warranty_period":
+                # Check if within warranty period based on product's actual warranty days
+                days_since_purchase = context.get("days_since_purchase", 0)
+                product_warranty_days = context.get("product_warranty_days", 365)  # Default to 365 if not specified
+                if days_since_purchase > product_warranty_days:
+                    return False
         return True
     
     def generate_policy_text(self) -> str:
@@ -192,7 +196,7 @@ def create_policy_graph(config: DatasetConfig) -> PolicyGraph:
         clause_id="POL-RETURN-001",
         title="Return Window",
         rule="ALL items: 30-day return window from delivery date. No returns accepted after 30 days for any reason.",
-        conditions=["within_return_window", "receipt_required"],
+        conditions=["within_return_window"],
         modified_by=["POL-RETURN-004", "POL-HOLIDAY-001"],
         interacts_with=["POL-RETURN-002", "POL-RETURN-003"],  # Symmetric relationships
         precedence=3,
@@ -202,7 +206,7 @@ def create_policy_graph(config: DatasetConfig) -> PolicyGraph:
     graph.add_clause(PolicyClause(
         clause_id="POL-RETURN-002",
         title="Restocking Fee",
-        rule="Opened items: 15% restocking fee applies unless item is defective",
+        rule="Opened items: 15% restocking fee applies. If item is defective, no restocking fee.",
         conditions=["within_return_window"],
         overridden_by=["POL-RETURN-004"],
         modified_by=["POL-RETURN-003"],
@@ -238,7 +242,8 @@ def create_policy_graph(config: DatasetConfig) -> PolicyGraph:
         clause_id="POL-EXCHANGE-001",
         title="Exchange Window",
         rule="Exchanges allowed within 30 days for same or higher value item. Customer pays price difference if applicable.",
-        conditions=["within_return_window", "receipt_required"],
+        conditions=["within_return_window",],
+        modified_by=["POL-HOLIDAY-001"],
         interacts_with=["POL-RETURN-001"],
         precedence=3,
         category="Exchange Policy"
@@ -250,6 +255,16 @@ def create_policy_graph(config: DatasetConfig) -> PolicyGraph:
         rule="Defective items exchanged for same item at no cost. If same item unavailable, full refund or credit offered.",
         overrides=["POL-EXCHANGE-001"],
         precedence=1,
+        category="Exchange Policy"
+    ))
+
+    graph.add_clause(PolicyClause(
+        clause_id="POL-EXCHANGE-003",
+        title="Opened Item Exchange",
+        rule="Opened items: 15% restocking fee applies for exchange. If item is defective, no restocking fee.",
+        conditions=["within_return_window"],
+        interacts_with=["POL-RETURN-001"],
+        precedence=3,
         category="Exchange Policy"
     ))
     
@@ -282,7 +297,7 @@ def create_policy_graph(config: DatasetConfig) -> PolicyGraph:
     graph.add_clause(PolicyClause(
         clause_id="POL-SHIP-004",
         title="Wrong Item Shipped",
-        rule="Wrong item shipped: Free return label provided, correct item sent immediately. No time limit - this is merchant error.",
+        rule="Wrong item shipped: Free return, no restocking fee, correct item sent immediately.",
         precedence=2,
         category="Shipping Policy"
     ))
@@ -293,6 +308,7 @@ def create_policy_graph(config: DatasetConfig) -> PolicyGraph:
         rule="Damaged items over $500: Photo required before replacement approved",
         conditions=["item_over_500"],
         modifies=["POL-SHIP-006"],
+        interacts_with=["POL-SHIP-006", "POL-RETURN-004"],
         precedence=2,
         category="Shipping Policy"
     ))
@@ -302,6 +318,7 @@ def create_policy_graph(config: DatasetConfig) -> PolicyGraph:
         title="Damage Claims Standard",
         rule="Damaged items under $500: Immediate replacement authorized",
         modified_by=["POL-SHIP-005"],
+        interacts_with=["POL-SHIP-005", "POL-RETURN-004"],
         precedence=4,
         category="Shipping Policy"
     ))
@@ -310,7 +327,7 @@ def create_policy_graph(config: DatasetConfig) -> PolicyGraph:
     graph.add_clause(PolicyClause(
         clause_id="POL-WARRANTY-001",
         title="Warranty Period",
-        rule="Manufacturer warranty: 1 year from purchase date. No warranty service after 1 year",
+        rule="Warranty period listed directly in product information.", 
         conditions=["warranty_period"],
         interacts_with=["POL-WARRANTY-002", "POL-WARRANTY-003"],
         precedence=3,
@@ -320,7 +337,7 @@ def create_policy_graph(config: DatasetConfig) -> PolicyGraph:
     graph.add_clause(PolicyClause(
         clause_id="POL-WARRANTY-002",
         title="Manufacturing Defects",
-        rule="Defects covered: Manufacturing defects only",
+        rule="Covered under warranty: manufacturing defects only",
         conditions=["warranty_period"],
         interacts_with=["POL-WARRANTY-001", "POL-WARRANTY-003"],  # Symmetric relationships
         overridden_by=["POL-WARRANTY-003"],  # Symmetric with overrides
@@ -331,7 +348,7 @@ def create_policy_graph(config: DatasetConfig) -> PolicyGraph:
     graph.add_clause(PolicyClause(
         clause_id="POL-WARRANTY-003",
         title="Warranty Exclusions",
-        rule="Not covered: Physical damage, water damage, normal wear",
+        rule="Not covered under warranty: physical damage, water damage, normal wear",
         conditions=["warranty_period"],
         interacts_with=["POL-WARRANTY-001", "POL-WARRANTY-002"],  # Symmetric relationships
         overrides=["POL-WARRANTY-002"],
@@ -354,7 +371,7 @@ def create_policy_graph(config: DatasetConfig) -> PolicyGraph:
     graph.add_clause(PolicyClause(
         clause_id="POL-PRICE-002",
         title="Price Match Exclusions",
-        rule="Exclusions: Marketplace sellers, clearance items, bundles",
+        rule="Price Match Exclusions: Marketplace sellers, clearance items, and bundles",
         interacts_with=["POL-PRICE-001"],  # Symmetric relationship
         modifies=["POL-PRICE-001"],
         precedence=2,
@@ -366,8 +383,7 @@ def create_policy_graph(config: DatasetConfig) -> PolicyGraph:
         clause_id="POL-ORDER-001",
         title="Order Modification Window",
         rule="Changes allowed: Within 2 hours of order placement. After 2 hours: Order cannot be modified",
-        conditions=["order_not_shipped"],
-        precedence=3,
+        precedence=3, 
         category="Order Policy"
     ))
     
@@ -375,27 +391,19 @@ def create_policy_graph(config: DatasetConfig) -> PolicyGraph:
     graph.add_clause(PolicyClause(
         clause_id="POL-HOLIDAY-001",
         title="Holiday Extension",
-        rule="Holiday purchases: Return window extended to 45 days for purchases made November 1 - December 31",
-        modifies=["POL-RETURN-001"],
+        rule="Holiday purchases: Return and exchange window extended to 45 days for purchases made November 1 - December 31",
+        modifies=["POL-RETURN-001", "POL-EXCHANGE-001"],
         precedence=2,
         category="Special Conditions"
     ))
     
     # Communication Policy
     graph.add_clause(PolicyClause(
-        clause_id="POL-COMM-001",
-        title="Response Time",
-        rule="Response time: Within 24 hours",
-        precedence=5,
-        category="Customer Service Standards"
-    ))
-    
-    graph.add_clause(PolicyClause(
         clause_id="POL-COMM-002",
-        title="Escalation",
-        rule="Escalation: Available for orders over $1000",
-        conditions=["item_over_500"],  # Using similar condition
-        precedence=4,
+        title="High Value Escalation",
+        rule="High-value escalation: Available for orders over $1000 or individual items over $500",
+        conditions=["item_over_500"],
+        precedence=3,
         category="Customer Service Standards"
     ))
     
@@ -633,29 +641,6 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
             }
             ),
             ScenarioTemplate(
-                scenario_id="RETURN-004",
-                name="return_no_receipt",
-                description="Customer wants to return item without receipt",
-                primary_policy="POL-RETURN-001",
-                all_relevant_policies=["POL-RETURN-001"],
-                context_requirements={
-                    "days_since_purchase": (10, 20),
-                    "has_receipt": False,
-                    "item_condition": "unopened"
-                },
-                expected_outcome="deny",
-                complexity_level=1,
-                customer_situation={
-                "customer_expectation": "store_credit",
-                "complication": "no_receipt"
-            },
-                email_patterns={
-                    "should_mention": ["lost_receipt", "product_name", "gift"],
-                "might_omit": ["order_number", "purchase_date"],
-                "tone_modifier": "apologetic"
-            }
-            ),
-            ScenarioTemplate(
                 scenario_id="RETURN-005",
                 name="return_holiday_extended",
                 description="Customer returning holiday purchase within extended window",
@@ -677,6 +662,54 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                     "should_mention": ["holiday_gift", "product_name", "unopened"],
                     "might_omit": ["exact_policy_knowledge"],
                     "tone_modifier": "hopeful"
+                }
+            ),
+            # New deny_refund scenarios
+            ScenarioTemplate(
+                scenario_id="RETURN-006",
+                name="refund_request_outside_window",
+                description="Customer requests refund for item outside normal 30-day window",
+                primary_policy="POL-RETURN-001",
+                all_relevant_policies=["POL-RETURN-001"],
+                context_requirements={
+                    "days_since_purchase": (35, 60),
+                    "has_receipt": True,
+                    "item_condition": "unopened"
+                },
+                expected_outcome="deny",
+                complexity_level=1,
+                customer_situation={
+                    "customer_expectation": "full_refund",
+                    "complication": "outside_window"
+                },
+                email_patterns={
+                    "should_mention": ["product_name", "refund", "unused"],
+                    "might_omit": ["exact_purchase_date"],
+                    "tone_modifier": "hopeful"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="RETURN-007",
+                name="refund_request_outside_holiday_window",
+                description="Customer requests refund for holiday purchase outside extended 45-day window",
+                primary_policy="POL-HOLIDAY-001",
+                all_relevant_policies=["POL-HOLIDAY-001", "POL-RETURN-001"],
+                context_requirements={
+                    "days_since_purchase": (48, 70),
+                    "purchase_month": 12,
+                    "has_receipt": True,
+                    "item_condition": "unopened"
+                },
+                expected_outcome="deny",
+                complexity_level=2,
+                customer_situation={
+                    "customer_expectation": "holiday_refund",
+                    "complication": "outside_holiday_window"
+                },
+                email_patterns={
+                    "should_mention": ["holiday_gift", "product_name", "refund"],
+                    "might_omit": ["holiday_policy_knowledge"],
+                    "tone_modifier": "disappointed"
                 }
             )
         ],
@@ -750,6 +783,54 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                     "might_omit": ["exact_price_difference"],
                     "tone_modifier": "inquiring"
                 }
+            ),
+            # New deny_exchange scenarios
+            ScenarioTemplate(
+                scenario_id="EXCHANGE-004",
+                name="exchange_request_outside_window",
+                description="Customer wants to exchange item outside 30-day window",
+                primary_policy="POL-EXCHANGE-001",
+                all_relevant_policies=["POL-EXCHANGE-001", "POL-RETURN-001"],
+                context_requirements={
+                    "days_since_purchase": (35, 50),
+                    "has_receipt": True,
+                    "exchange_reason": "wrong_size"
+                },
+                expected_outcome="deny",
+                complexity_level=1,
+                customer_situation={
+                    "customer_expectation": "size_exchange",
+                    "complication": "outside_window"
+                },
+                email_patterns={
+                    "should_mention": ["wrong_size", "exchange", "product_name"],
+                    "might_omit": ["exact_purchase_date"],
+                    "tone_modifier": "disappointed"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="EXCHANGE-005",
+                name="exchange_request_outside_holiday_window",
+                description="Customer wants to exchange holiday gift outside extended 45-day window",
+                primary_policy="POL-HOLIDAY-001",
+                all_relevant_policies=["POL-HOLIDAY-001", "POL-EXCHANGE-001"],
+                context_requirements={
+                    "days_since_purchase": (48, 65),
+                    "purchase_month": (11, 12),
+                    "has_receipt": True,
+                    "exchange_reason": "wrong_size"
+                },
+                expected_outcome="deny",
+                complexity_level=2,
+                customer_situation={
+                    "customer_expectation": "holiday_exchange",
+                    "complication": "outside_holiday_window"
+                },
+                email_patterns={
+                    "should_mention": ["holiday_gift", "exchange", "wrong_size"],
+                    "might_omit": ["gift_giver_contact"],
+                    "tone_modifier": "frustrated"
+                }
             )
     ],
     "shipping_issue": [
@@ -803,7 +884,7 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="damaged_high_value",
                 description="High-value item arrived damaged",
                 primary_policy="POL-SHIP-005",
-                all_relevant_policies=["POL-SHIP-005", "POL-RETURN-004", "POL-COMM-002"],
+                all_relevant_policies=["POL-SHIP-005", "POL-RETURN-004"],
                 context_requirements={
                     "days_since_delivery": (1, 3),
                     "item_value": (501, 2000)
@@ -847,7 +928,7 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="delayed_shipment",
                 description="Order significantly delayed beyond promised date",
                 primary_policy="POL-SHIP-001",
-                all_relevant_policies=["POL-SHIP-001", "POL-COMM-001"],
+                all_relevant_policies=["POL-SHIP-001", "POL-COMM-002"],
                 context_requirements={
                     "days_since_order": (10, 15),
                     "order_status": "shipped",
@@ -874,7 +955,7 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 primary_policy="POL-WARRANTY-002",
                 all_relevant_policies=["POL-WARRANTY-001", "POL-WARRANTY-002"],
                 context_requirements={
-                    "months_since_purchase": (3, 10),
+                    "months_since_purchase": (1, 20),
                     "damage_type": "manufacturing"
                 },
                 expected_outcome="approve",
@@ -931,6 +1012,147 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                     "should_mention": ["just_over_year", "loyal_customer", "product_name"],
                     "might_omit": ["exact_warranty_period"],
                     "tone_modifier": "pleading"
+                }
+            ),
+            # NEW COMPREHENSIVE WARRANTY SCENARIOS
+            ScenarioTemplate(
+                scenario_id="WARRANTY-004",
+                name="warranty_claim_90_day_accessory_valid",
+                description="Customer claims warranty on 90-day accessory within period. CSR must verify product warranty period (90 days) and manufacturing defect coverage.",
+                primary_policy="POL-WARRANTY-002",
+                all_relevant_policies=["POL-WARRANTY-001", "POL-WARRANTY-002"],
+                context_requirements={
+                    "days_since_purchase": (45, 85),  # Within 90-day window
+                    "product_warranty_days": 90,  # Accessory warranty
+                    "damage_type": "manufacturing"
+                },
+                expected_outcome="approve",
+                complexity_level=2,
+                customer_situation={
+                    "customer_expectation": "free_replacement",
+                    "complication": "shorter_warranty_period"
+                },
+                email_patterns={
+                    "should_mention": ["product_name", "stopped_working", "only_had_for"],
+                    "might_omit": ["warranty_length_awareness"],
+                    "tone_modifier": "concerned"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="WARRANTY-005",
+                name="warranty_claim_90_day_accessory_expired",
+                description="Customer claims warranty on 90-day accessory outside period. CSR must lookup product warranty (90 days), calculate days since purchase, and deny based on POL-WARRANTY-001.",
+                primary_policy="POL-WARRANTY-001",
+                all_relevant_policies=["POL-WARRANTY-001"],
+                context_requirements={
+                    "days_since_purchase": (95, 180),  # Outside 90-day window
+                    "product_warranty_days": 90,  # Accessory warranty  
+                    "damage_type": "manufacturing"
+                },
+                expected_outcome="deny",
+                complexity_level=2,
+                customer_situation={
+                    "customer_expectation": "warranty_coverage",
+                    "complication": "warranty_expired_accessory"
+                },
+                email_patterns={
+                    "should_mention": ["product_name", "only_few_months", "should_be_covered"],
+                    "might_omit": ["exact_purchase_date"],
+                    "tone_modifier": "frustrated"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="WARRANTY-006",
+                name="warranty_claim_365_day_within_period",
+                description="Customer claims warranty on 365-day product within period. CSR verifies 1-year warranty coverage and manufacturing defect applies per POL-WARRANTY-002.",
+                primary_policy="POL-WARRANTY-002",
+                all_relevant_policies=["POL-WARRANTY-001", "POL-WARRANTY-002"],
+                context_requirements={
+                    "days_since_purchase": (200, 350),  # Within 365-day window
+                    "product_warranty_days": 365,  # Full year warranty
+                    "damage_type": "manufacturing"
+                },
+                expected_outcome="approve",
+                complexity_level=2,
+                customer_situation={
+                    "customer_expectation": "warranty_replacement",
+                    "complication": "none"
+                },
+                email_patterns={
+                    "should_mention": ["product_name", "manufacturing_defect", "within_warranty"],
+                    "might_omit": ["exact_defect_details"],
+                    "tone_modifier": "confident"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="WARRANTY-007",
+                name="warranty_exclusion_water_damage_within_period",
+                description="Customer claims warranty for water-damaged product within warranty period. CSR must apply POL-WARRANTY-003 (exclusions override manufacturing coverage) even though within warranty window per POL-WARRANTY-001.",
+                primary_policy="POL-WARRANTY-003",
+                all_relevant_policies=["POL-WARRANTY-001", "POL-WARRANTY-002", "POL-WARRANTY-003"],
+                context_requirements={
+                    "days_since_purchase": (30, 200),  # Within warranty period
+                    "product_warranty_days": 365,
+                    "damage_type": "water"
+                },
+                expected_outcome="deny",
+                complexity_level=3,
+                customer_situation={
+                    "customer_expectation": "warranty_coverage",
+                    "complication": "water_damage_exclusion"
+                },
+                email_patterns={
+                    "should_mention": ["product_name", "accident", "still_under_warranty", "small_amount"],
+                    "might_omit": ["extent_of_damage"],
+                    "tone_modifier": "hopeful"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="WARRANTY-008",
+                name="warranty_physical_damage_exclusion",
+                description="Customer claims warranty for physically damaged high-value item within period. CSR must apply POL-WARRANTY-003 (physical damage exclusion) despite being within warranty per POL-WARRANTY-001, and note escalation availability per POL-COMM-002.",
+                primary_policy="POL-WARRANTY-003", 
+                all_relevant_policies=["POL-WARRANTY-001", "POL-WARRANTY-002", "POL-WARRANTY-003", "POL-COMM-002"],
+                context_requirements={
+                    "days_since_purchase": (45, 300),
+                    "product_warranty_days": 365,
+                    "damage_type": "physical",
+                    "item_value": 800,
+                    "item_over_500": True
+                },
+                expected_outcome="deny",
+                complexity_level=3,
+                customer_situation={
+                    "customer_expectation": "warranty_coverage",
+                    "complication": "physical_damage_high_value"
+                },
+                email_patterns={
+                    "should_mention": ["product_name", "dropped", "expensive", "under_warranty"],
+                    "might_omit": ["damage_severity"],
+                    "tone_modifier": "desperate"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="WARRANTY-009",
+                name="warranty_normal_wear_exclusion_long_usage",
+                description="Customer claims warranty for normal wear on product near end of warranty period. CSR must distinguish normal wear (POL-WARRANTY-003 exclusion) from manufacturing defect (POL-WARRANTY-002 coverage).",
+                primary_policy="POL-WARRANTY-003",
+                all_relevant_policies=["POL-WARRANTY-001", "POL-WARRANTY-002", "POL-WARRANTY-003"],
+                context_requirements={
+                    "days_since_purchase": (320, 360),  # Near end of warranty
+                    "product_warranty_days": 365,
+                    "damage_type": "normal_wear"
+                },
+                expected_outcome="deny",
+                complexity_level=3,
+                customer_situation={
+                    "customer_expectation": "warranty_replacement",
+                    "complication": "normal_wear_vs_defect"
+                },
+                email_patterns={
+                    "should_mention": ["product_name", "wearing_out", "almost_year", "used_daily"],
+                    "might_omit": ["usage_intensity"],
+                    "tone_modifier": "disappointed"
                 }
             )
     ],
@@ -1073,12 +1295,81 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 "tone_modifier": "hopeful"
             }
             ),
+            # New scenarios for missing actions
+            ScenarioTemplate(
+                scenario_id="ORDER-004",
+                name="cancel_order_within_window",
+                description="Customer wants to cancel order within 2-hour modification window",
+                primary_policy="POL-ORDER-001",
+                all_relevant_policies=["POL-ORDER-001"],
+                context_requirements={
+                    "hours_since_order": (0.5, 1.5),
+                    "order_status": "processing"
+                },
+                expected_outcome="approve",
+                complexity_level=1,
+                customer_situation={
+                    "customer_expectation": "order_cancelled",
+                    "complication": "none"
+                },
+                email_patterns={
+                    "should_mention": ["cancel_order", "changed_mind", "order_number"],
+                    "might_omit": ["reason_for_change"],
+                    "tone_modifier": "polite"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="ORDER-005",
+                name="modify_order_within_window",
+                description="Customer wants to add item to order within 2-hour modification window",
+                primary_policy="POL-ORDER-001",
+                all_relevant_policies=["POL-ORDER-001"],
+                context_requirements={
+                    "hours_since_order": (0.3, 1.8),
+                    "order_status": "processing"
+                },
+                expected_outcome="approve",
+                complexity_level=1,
+                customer_situation={
+                    "customer_expectation": "add_item",
+                    "complication": "none"
+                },
+                email_patterns={
+                    "should_mention": ["forgot_to_add", "same_order", "additional_item"],
+                    "might_omit": ["payment_method"],
+                    "tone_modifier": "hopeful"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="ORDER-006",
+                name="high_value_order_inquiry_escalation",
+                description="Customer inquiry about high-value order requiring escalation",
+                primary_policy="POL-COMM-002",
+                all_relevant_policies=["POL-COMM-002", "POL-SHIP-001"],
+                context_requirements={
+                    "days_since_order": (1, 3),
+                    "order_value": (600, 1500),
+                    "item_over_500": True,
+                    "order_status": "processing"
+                },
+                expected_outcome="escalate",
+                complexity_level=2,
+                customer_situation={
+                    "customer_expectation": "priority_handling",
+                    "complication": "high_value_concern"
+                },
+                email_patterns={
+                    "should_mention": ["expensive_item", "concerned", "order_status"],
+                    "might_omit": ["exact_value"],
+                    "tone_modifier": "concerned"
+                }
+            ),
             ScenarioTemplate(
                 scenario_id="ORDER-003",
                 name="order_status_inquiry",
                 description="Customer checking on order status",
-                primary_policy="POL-COMM-001",
-                all_relevant_policies=["POL-COMM-001", "POL-SHIP-001"],
+                primary_policy="POL-COMM-002",
+                all_relevant_policies=["POL-COMM-002", "POL-SHIP-001"],
                 context_requirements={
                     "days_since_order": (3, 5),
                     "order_status": "processing"
@@ -1102,7 +1393,7 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="product_availability",
                 description="Customer asking about availability or stock status of 1-2 specific products by name (not general inquiries about 'all products')",
                 primary_policy="POL-INFO-001",
-                all_relevant_policies=["POL-INFO-001", "POL-COMM-001"],
+                all_relevant_policies=["POL-INFO-001", "POL-COMM-002"],
                 context_requirements={},
                 expected_outcome="information",
                 complexity_level=1,
@@ -1121,7 +1412,7 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="product_comparison",
                 description="Customer asking for comparison between 2 specific products in the company's catalog. Customer asks about warranty/specs for the products and mentions specific product names",
                 primary_policy="POL-INFO-001",
-                all_relevant_policies=["POL-INFO-001", "POL-COMM-001"],
+                all_relevant_policies=["POL-INFO-001", "POL-COMM-002"],
                 context_requirements={},
                 expected_outcome="information",
                 complexity_level=1,
@@ -1140,7 +1431,7 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                 name="shipping_cost_inquiry",
                 description="Customer asking about shipping costs and options",
                 primary_policy="POL-SHIP-001",
-                all_relevant_policies=["POL-SHIP-001", "POL-COMM-001"],
+                all_relevant_policies=["POL-SHIP-001", "POL-COMM-002"],
                 context_requirements={},
                 expected_outcome="information",
                 complexity_level=1,
@@ -1152,6 +1443,159 @@ def create_scenario_templates() -> Dict[str, List[ScenarioTemplate]]:
                     "should_mention": ["shipping_cost", "delivery_time", "shipping_options"],
                     "might_omit": ["specific_items"],
                     "tone_modifier": "curious"
+                }
+            )
+        ],
+        # NEW COMPLEX MULTI-POLICY INTERACTION SCENARIOS
+        "complex_interactions": [
+            ScenarioTemplate(
+                scenario_id="COMPLEX-001",
+                name="holiday_return_high_value_damaged_item",
+                description="Customer returns damaged high-value item during holiday extended window. CSR must: 1) Apply holiday extension (POL-HOLIDAY-001) extending return window to 45 days, 2) Check shipping damage policy (POL-SHIP-005) requiring photo for >$500 items, 3) Apply defective item override (POL-RETURN-004) removing restocking fees, 4) Consider escalation (POL-COMM-002) for high-value items.",
+                primary_policy="POL-RETURN-004",
+                all_relevant_policies=["POL-HOLIDAY-001", "POL-RETURN-001", "POL-RETURN-004", "POL-SHIP-005", "POL-COMM-002"],
+                context_requirements={
+                    "days_since_purchase": (35, 44),  # Within holiday extension but outside normal window
+                    "purchase_month": 12,  # December purchase
+                    "has_receipt": True,
+                    "item_condition": "defective",
+                    "item_value": 800,
+                    "item_over_500": True
+                },
+                expected_outcome="approve",
+                complexity_level=4,
+                customer_situation={
+                    "customer_expectation": "full_refund",
+                    "complication": "complex_policy_interaction"
+                },
+                email_patterns={
+                    "should_mention": ["holiday_gift", "damaged_on_arrival", "expensive", "photo_attached"],
+                    "might_omit": ["holiday_policy_awareness"],
+                    "tone_modifier": "frustrated"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="COMPLEX-002", 
+                name="warranty_vs_return_window_conflict",
+                description="Customer wants to return manufacturing-defective item outside return window but within warranty. CSR must navigate: 1) Return window expired (POL-RETURN-001), 2) Warranty still valid (POL-WARRANTY-001, POL-WARRANTY-002), 3) Defective item policies (POL-RETURN-004), 4) Determine warranty repair vs return refund precedence.",
+                primary_policy="POL-WARRANTY-002",
+                all_relevant_policies=["POL-RETURN-001", "POL-RETURN-004", "POL-WARRANTY-001", "POL-WARRANTY-002"],
+                context_requirements={
+                    "days_since_purchase": (45, 200),  # Outside return window, within warranty
+                    "product_warranty_days": 365,
+                    "has_receipt": True,
+                    "damage_type": "manufacturing",
+                    "item_condition": "defective"
+                },
+                expected_outcome="approve",
+                complexity_level=4,
+                customer_situation={
+                    "customer_expectation": "full_refund",
+                    "complication": "warranty_vs_return_policies"
+                },
+                email_patterns={
+                    "should_mention": ["product_name", "manufacturing_defect", "want_refund", "still_under_warranty"],
+                    "might_omit": ["warranty_vs_return_difference"],
+                    "tone_modifier": "confused"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="COMPLEX-003",
+                name="exchange_holiday_high_value_opened",
+                description="Customer wants to exchange opened high-value item during holiday period. CSR must: 1) Apply holiday extension (POL-HOLIDAY-001) to exchange window, 2) Calculate restocking fee (POL-EXCHANGE-003) for opened items, 3) Check high-value escalation (POL-COMM-002), 4) Process exchange with price difference (POL-EXCHANGE-001).",
+                primary_policy="POL-EXCHANGE-003",
+                all_relevant_policies=["POL-HOLIDAY-001", "POL-EXCHANGE-001", "POL-EXCHANGE-003", "POL-COMM-002"],
+                context_requirements={
+                    "days_since_purchase": (38, 44),  # Within holiday extension
+                    "purchase_month": 11,  # November purchase  
+                    "has_receipt": True,
+                    "item_condition": "opened",
+                    "exchange_reason": "upgrade",
+                    "item_value": 700,
+                    "item_over_500": True
+                },
+                expected_outcome="approve_with_fee",
+                complexity_level=4,
+                customer_situation={
+                    "customer_expectation": "direct_exchange",
+                    "complication": "holiday_exchange_with_fees"
+                },
+                email_patterns={
+                    "should_mention": ["holiday_purchase", "opened_box", "want_upgrade", "pay_difference"],
+                    "might_omit": ["restocking_fee_awareness"],
+                    "tone_modifier": "hopeful"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="COMPLEX-004",
+                name="damaged_shipment_investigation_vs_immediate_replacement",
+                description="Customer reports high-value item damaged in shipping vs lost package investigation requirements. CSR must: 1) Distinguish between damage (POL-SHIP-005 - photo required) vs lost (POL-SHIP-002/003 - investigation required), 2) Apply appropriate replacement policy, 3) Consider escalation (POL-COMM-002) for high value.",
+                primary_policy="POL-SHIP-005",
+                all_relevant_policies=["POL-SHIP-002", "POL-SHIP-003", "POL-SHIP-005", "POL-SHIP-006", "POL-COMM-002"],
+                context_requirements={
+                    "days_since_delivery": (1, 3),
+                    "tracking_status": "delivered",
+                    "item_value": 900,
+                    "item_over_500": True,
+                    "damage_type": "shipping"
+                },
+                expected_outcome="conditional",
+                complexity_level=4,
+                customer_situation={
+                    "customer_expectation": "immediate_replacement",
+                    "complication": "damage_vs_lost_policy_distinction"
+                },
+                email_patterns={
+                    "should_mention": ["box_damaged", "expensive_item", "photo_attached", "delivered_yesterday"],
+                    "might_omit": ["internal_damage_extent"],
+                    "tone_modifier": "upset"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="COMPLEX-005",
+                name="price_match_vs_return_window_optimization",
+                description="Customer missed 14-day price match window but still within 30-day return window. CSR must: 1) Deny price match (POL-PRICE-001 - outside window), 2) Offer return and repurchase option (POL-RETURN-001/003), 3) Calculate return restocking fees vs price difference savings, 4) Provide optimal customer solution.",
+                primary_policy="POL-PRICE-001",
+                all_relevant_policies=["POL-PRICE-001", "POL-RETURN-001", "POL-RETURN-003"],
+                context_requirements={
+                    "days_since_purchase": (16, 28),  # Outside price match, within return
+                    "competitor_type": "authorized",
+                    "has_receipt": True,
+                    "item_condition": "unopened"
+                },
+                expected_outcome="deny",
+                complexity_level=4,
+                customer_situation={
+                    "customer_expectation": "price_match",
+                    "complication": "window_optimization_needed"
+                },
+                email_patterns={
+                    "should_mention": ["found_lower_price", "missed_deadline", "unopened", "significant_difference"],
+                    "might_omit": ["return_and_rebuy_option"],
+                    "tone_modifier": "disappointed"
+                }
+            ),
+            ScenarioTemplate(
+                scenario_id="COMPLEX-006",
+                name="order_modification_shipped_vs_return_exchange",
+                description="Customer wants to modify already-shipped order by adding items. CSR must: 1) Deny modification (POL-ORDER-001 - outside 2-hour window), 2) Evaluate return current order (POL-RETURN-001) + new order vs exchange options (POL-EXCHANGE-001), 3) Consider shipping costs and timing for customer.",
+                primary_policy="POL-ORDER-001",
+                all_relevant_policies=["POL-ORDER-001", "POL-RETURN-001", "POL-EXCHANGE-001", "POL-SHIP-001"],
+                context_requirements={
+                    "days_since_order": 3,
+                    "order_status": "shipped",
+                    "hours_since_order": 72  # Well outside 2-hour window
+                },
+                expected_outcome="deny",
+                complexity_level=4,
+                customer_situation={
+                    "customer_expectation": "add_items_to_order",
+                    "complication": "shipped_order_modification"
+                },
+                email_patterns={
+                    "should_mention": ["forgot_to_add", "already_shipped", "combine_shipping", "save_shipping_cost"],
+                    "might_omit": ["return_and_reorder_option"],
+                    "tone_modifier": "hopeful"
                 }
             )
         ]
@@ -1173,7 +1617,7 @@ def validate_scenario_templates(scenario_templates: Dict[str, List[ScenarioTempl
         "Price Match Policies": ["POL-PRICE-001", "POL-PRICE-002"],
         "Order Policies": ["POL-ORDER-001"],
         "Special Conditions": ["POL-HOLIDAY-001"],
-        "Service Standards": ["POL-COMM-001", "POL-COMM-002"],
+        "Service Standards": ["POL-COMM-002"],
         "Information Policies": ["POL-INFO-001"]
     }
     
@@ -1344,32 +1788,32 @@ SCENARIO_DIMENSIONS = {
     "query_type": {
         "return_request": 0.25,
         "exchange_request": 0.15,
-        "shipping_issue": 0.20,
+        "shipping_issue": 0.25,
         "order_status": 0.10,
         "pricing_dispute": 0.10,
-        "general_inquiry": 0.10,
+        "general_inquiry": 0.05,
         "warranty_claim": 0.10
     },
     
     "information_completeness": {
-        "complete": 0.30,
-        "missing_order_number": 0.30,
-        "wrong_email": 0.10,
+        "complete": 0.20,
+        "missing_order_number": 0.50,
+        "wrong_email": 0.05,
         "minimal_details": 0.20,
-        "incorrect_info": 0.10
+        "incorrect_info": 0.05
     },
     
     "complexity": {
-        "straightforward": 0.40,
-        "requires_lookup": 0.35,
-        "edge_case": 0.20,
+        "straightforward": 0.20,
+        "requires_lookup": 0.65,
+        "edge_case": 0.10,
         "requires_escalation": 0.05
     },
     
     "customer_sentiment": {
-        "neutral": 0.60,
-        "frustrated": 0.20,
-        "angry": 0.10,
+        "neutral": 0.70,
+        "frustrated": 0.10,
+        "pleading": 0.10,
         "confused": 0.10
     }
 }
@@ -1377,12 +1821,10 @@ SCENARIO_DIMENSIONS = {
 # Standard resolution action types - including denials
 RESOLUTION_ACTIONS = [
     "process_return",
-    "issue_refund", 
     "send_replacement",
     "provide_tracking",
     "honor_warranty",
     "escalate_to_manager",
-    "request_more_info",
     "request_photo",
     "update_shipping_address",
     "cancel_order",
@@ -1392,11 +1834,12 @@ RESOLUTION_ACTIONS = [
     "deny_price_match",
     "deny_order_modification",
     "deny_cancellation",
-    "provide_information",
+    "provide_product_information",
     "initiate_investigation",
     "process_exchange",
     "deny_exchange",
-    "send_return_label"
+    "honor_price_match",
+    "accept_order_modification"
 ]
 
 def extract_json_from_text(text: str) -> str:
@@ -1691,7 +2134,12 @@ def select_and_customize_scenario(policy_graph: PolicyGraph, scenario_templates:
         for key, value in template.context_requirements.items():
             if isinstance(value, tuple):
                 # For ranges, pick a random value within the range
-                context[key] = random.randint(value[0], value[1])
+                if isinstance(value[0], float) or isinstance(value[1], float):
+                    # Handle float ranges with random.uniform
+                    context[key] = random.uniform(value[0], value[1])
+                else:
+                    # Handle integer ranges with random.randint
+                    context[key] = random.randint(value[0], value[1])
             else:
                 context[key] = value
         
@@ -1766,10 +2214,19 @@ def build_order_context(order: Dict, customer: Dict, products: List[Dict]) -> Di
         # Product-specific context
         if order.get("items") and products:
             max_item_value = 0
+            max_warranty_days = 0
             for item in order["items"]:
                 item_value = item.get("price_paid", 0) * item.get("quantity", 1)
                 max_item_value = max(max_item_value, item_value)
+                
+                # Find matching product to get warranty period
+                matching_product = next((p for p in products if p["product_id"] == item["product_id"]), None)
+                if matching_product:
+                    warranty_days = matching_product.get("warranty_period", 365)
+                    max_warranty_days = max(max_warranty_days, warranty_days)
+            
             context["item_value"] = max_item_value
+            context["product_warranty_days"] = max_warranty_days if max_warranty_days > 0 else 365
     
     return context
 
@@ -2605,10 +3062,10 @@ if __name__ == "__main__":
     # For testing, use smaller numbers by default
     if len(sys.argv) == 1:  # No arguments provided
         print("No arguments provided. Using test configuration with small dataset.")
-        config.num_tickets = 100
+        config.num_tickets = 120
         config.num_products = 35
         config.num_customers = 50
-        config.num_orders = 70
+        config.num_orders = 80
     
     # Run generation
     main(config)
