@@ -168,6 +168,93 @@ After running the factory, the `assets/` directory contains:
 | `ticket_audit_results.json` | Quality analysis of generated tickets | Compliance scores, error detection |
 | `ticket_audit_report.txt` | Human-readable audit summary | Policy violations, recommendations |
 
+### Example ticket (JSON)
+Shows customer email, resolution plan, and metadata (product, customer, scenario template, policy interations, etc.) used by the system to generate both.
+
+```json
+{
+  "ticket_id": "TK-20250618-2052",
+  "customer_email": "david.chen@outlook.com",
+  "subject": "Defective Tablet - Order ORD-20250609-1002 - Exchange Request",
+  "body": "Dear Customer Support,\n\nI am writing to you today because I received a defective item in my recent order, ORD-20250609-1002. I ordered the Tablet Basic 10-inch on June 9, 2025, so it's only been a little over a week since it arrived.\n\nUnfortunately, the tablet is not working correctly. The screen frequently flickers and freezes, making it impossible to use. I've tried restarting it several times, but the problem persists. It's really frustrating to receive a brand new item that's already faulty.\n\nI would like to request an exchange for a working Tablet Basic 10-inch. I really need this specific model and would prefer to get a replacement rather than a refund. Could you please let me know the process for exchanging a defective item?\n\nThank you for your time and assistance.\n\nSincerely,\nDavid Chen",
+  "timestamp": "2025-06-18T10:30:00",
+  "customer_id": "CUST-0002",
+  "order_id": "ORD-20250609-1002",
+  "resolution_plan": {
+    "order_id": "ORD-20250609-1002",
+    "order_date": "2025-06-09",
+    "customer_lookup": {
+      "status": "found",
+      "customer_id": "CUST-0002",
+      "lookup_method": "email_match",
+      "notes": "Customer found in database"
+    },
+    "policy_references": [
+      "POL-EXCHANGE-002",
+      "POL-RETURN-001",
+      "POL-EXCHANGE-001",
+      "POL-SHIP-006"
+    ],
+    "policy_reasoning": "The customer reported receiving a defective Tablet Basic 10-inch within 9 days of purchase. This falls within the 30-day return/exchange window as per POL-RETURN-001 and POL-EXCHANGE-001. According to POL-EXCHANGE-002, defective items are to be exchanged for the same item at no cost. Since the item's value is $249.99, which is under $500, an immediate replacement can be authorized based on POL-SHIP-006 (Damaged items under $500).",
+    "actions": [
+      {
+        "type": "process_exchange",
+        "reason": "Customer is requesting an exchange for a defective item received within the exchange window, as per POL-EXCHANGE-002 and POL-RETURN-001. The item's value is under $500, allowing for immediate replacement per POL-SHIP-006.",
+        "value": 249.99,
+        "details": "Exchange for one (1) Tablet Basic 10-inch (PROD-1031) due to defect. No additional cost to customer."
+      },
+      {
+        "type": "send_replacement",
+        "reason": "Replacement authorized for a defective item under $500 as per POL-SHIP-006.",
+        "value": 249.99,
+        "details": "Ship one (1) new Tablet Basic 10-inch (PROD-1031) to customer David Chen. Provide return label for the defective unit."
+      }
+    ],
+    "escalation_required": false,
+    "escalation_reason": null,
+    "priority": "medium",
+    "total_resolution_value": 249.99
+  },
+  "_scenario_dimensions": {
+    "query_type": "exchange_request",
+    "information_completeness": "complete",
+    "complexity": "requires_lookup",
+    "customer_sentiment": "pleading"
+  },
+  "_scenario_template": {
+    "scenario_id": "EXCHANGE-002",
+    "name": "exchange_defective_product",
+    "primary_policy": "POL-EXCHANGE-002",
+    "complexity_level": 2,
+    "expected_outcome": "approve"
+  },
+  "_policy_analysis": {
+    "all_relevant_policies": [
+      "POL-EXCHANGE-002",
+      "POL-RETURN-004"
+    ],
+    "applicable_policies": [
+      "POL-EXCHANGE-002",
+      "POL-RETURN-004"
+    ],
+    "context_used": {
+      "has_receipt": true,
+      "customer_tier": "standard",
+      "days_since_purchase": 9,
+      "months_since_purchase": 0.2956636005256242,
+      "order_status": "delivered",
+      "total_order_value": 249.99,
+      "item_value": 249.99,
+      "product_warranty_days": 365,
+      "item_condition": "defective",
+      "exchange_reason": "defective",
+      "purchase_month": 6
+    },
+    "policy_interactions": "Multi-hop reasoning required"
+  }
+}
+```
+
 ## 🎛️ Configuration Options
 
 ### Factory Parameters
